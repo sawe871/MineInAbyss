@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.Relic.Distribution;
+package com.derongan.minecraft.mineinabyss.Relic.Looting;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;

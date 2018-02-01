@@ -6,6 +6,7 @@ import com.derongan.minecraft.mineinabyss.Ascension.AscensionTask;
 import com.derongan.minecraft.mineinabyss.Configuration.ConfigurationManager;
 import com.derongan.minecraft.mineinabyss.Layer.Layer;
 import com.derongan.minecraft.mineinabyss.Relic.Loading.RelicLoader;
+import com.derongan.minecraft.mineinabyss.Relic.Looting.LootableRelicScanner;
 import com.derongan.minecraft.mineinabyss.Relic.RelicCommandExecutor;
 import com.derongan.minecraft.mineinabyss.Relic.RelicDecayTask;
 import com.derongan.minecraft.mineinabyss.Relic.RelicUseListener;
@@ -58,6 +59,9 @@ public final class MineInAbyss extends JavaPlugin {
 
         Runnable decayTask = new RelicDecayTask(TICKS_BETWEEN);
         getServer().getScheduler().scheduleSyncRepeatingTask(this, decayTask, TICKS_BETWEEN, TICKS_BETWEEN);
+
+        LootableRelicScanner scanner = new LootableRelicScanner();
+        scanner.clearAllRelics(getServer().getWorlds());
 
 //        Runnable lootTask = new DistributionTask(context);
 //        getServer().getScheduler().scheduleSyncRepeatingTask(this, lootTask, TICKS_BETWEEN, TickUtils.milisecondsToTicks(20000));
