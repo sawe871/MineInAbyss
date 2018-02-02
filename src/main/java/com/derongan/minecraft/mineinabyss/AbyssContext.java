@@ -1,7 +1,6 @@
 package com.derongan.minecraft.mineinabyss;
 
 import com.derongan.minecraft.mineinabyss.Ascension.AscensionData;
-import com.derongan.minecraft.mineinabyss.Database.DatabaseUtils;
 import com.derongan.minecraft.mineinabyss.Layer.Layer;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.plugin.Plugin;
@@ -62,18 +61,5 @@ public class AbyssContext {
 
     public void setTickTime(int tickTime) {
         this.tickTime = tickTime;
-    }
-
-    public Connection getConnection() {
-        if(plugin == null){
-            throw new IllegalStateException("Plugin must be set before attempting to get database");
-        } else {
-            String dBPath = plugin.getDataFolder().getPath() + config.getString("storage.sqlitefile");
-
-            if(connection == null){
-                connection = DatabaseUtils.getDBConnection(dBPath);
-            }
-            return connection;
-        }
     }
 }

@@ -6,13 +6,14 @@ import com.derongan.minecraft.mineinabyss.Ascension.AscensionTask;
 import com.derongan.minecraft.mineinabyss.Configuration.ConfigurationManager;
 import com.derongan.minecraft.mineinabyss.Layer.Layer;
 import com.derongan.minecraft.mineinabyss.Relic.Loading.RelicLoader;
+import com.derongan.minecraft.mineinabyss.Relic.Looting.DistributionTask;
 import com.derongan.minecraft.mineinabyss.Relic.Looting.LootableRelicScanner;
 import com.derongan.minecraft.mineinabyss.Relic.RelicCommandExecutor;
 import com.derongan.minecraft.mineinabyss.Relic.RelicDecayTask;
 import com.derongan.minecraft.mineinabyss.Relic.RelicUseListener;
-import org.apache.commons.dbutils.DbUtils;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,8 +64,8 @@ public final class MineInAbyss extends JavaPlugin {
         LootableRelicScanner scanner = new LootableRelicScanner();
         scanner.clearAllRelics(getServer().getWorlds());
 
-//        Runnable lootTask = new DistributionTask(context);
-//        getServer().getScheduler().scheduleSyncRepeatingTask(this, lootTask, TICKS_BETWEEN, TickUtils.milisecondsToTicks(20000));
+        Runnable lootTask = new DistributionTask(context, getServer().getWorld("LayerOne"), new Point(190, 0), new Point(124, 60));
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, lootTask, TICKS_BETWEEN, 1);
 
         getServer().getPluginManager().registerEvents(new AscensionListener(context), this);
         getServer().getPluginManager().registerEvents(new RelicUseListener(), this);
@@ -85,6 +86,5 @@ public final class MineInAbyss extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         getLogger().info("onDisable has been invoked!");
-        DbUtils.closeQuietly(context.getConnection());//todo this is bad cus the connection might just be created then trashed here
     }
 }

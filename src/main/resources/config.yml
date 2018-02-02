@@ -14,6 +14,11 @@ layers:
       - [425,83,36]
       - [2953,515,41]
       - [4521,563,0]
+    lootTable:
+      chunkrange:
+        topRight: [190, 0]
+        bottomLeft: [124, 60]
+      relics: ALL
   -
     name: LayerTwo
     offset: 40
