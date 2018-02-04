@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.Relic.Looting;
+package com.derongan.minecraft.mineinabyss.plugin.Relic.Looting;
 
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;

@@ -1,18 +1,17 @@
-package com.derongan.minecraft.mineinabyss.Relic.Looting;
+package com.derongan.minecraft.mineinabyss.plugin.Relic.Looting;
 
-import com.derongan.minecraft.mineinabyss.AbyssContext;
-import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
-import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
-import com.derongan.minecraft.mineinabyss.TickUtils;
-import org.apache.commons.math3.distribution.BetaDistribution;
-import org.bukkit.ChunkSnapshot;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import com.derongan.minecraft.mineinabyss.API.Relic.Relics.RelicType;
+import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.LootableRelicType;
+import com.derongan.minecraft.mineinabyss.plugin.TickUtils;
+//import org.apache.commons.math3.distribution.BetaDistribution;
+import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.awt.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 public class DistributionTask extends BukkitRunnable {
@@ -20,25 +19,26 @@ public class DistributionTask extends BukkitRunnable {
     private LootableRelicType lootableRelicType;
     private World world;
 
+    private List<ChunkSnapshot> validChunks;
+
     private Random random = new Random();
-    private BetaDistribution betaDistribution = new BetaDistribution(.5, .5);
 
-    private Point bottomLeftChunk;
-    private Point topRightChunk;
-
-    public DistributionTask(AbyssContext context, World world, Point topRight, Point bottomLeft) {
+    public DistributionTask(AbyssContext context, World world, List<ChunkSnapshot> validChunks) {
         this.context = context;
         lootableRelicType = new LootableRelicType();
 
         this.world = world;
 
-        topRightChunk = topRight;
-        bottomLeftChunk = bottomLeft;
+        this.validChunks = validChunks;
     }
 
     @Override
     public void run() {
-        chooseSpawnLocation(chooseChunk());
+        chooseSpawnLocation(randomChunk());
+    }
+
+    private ChunkSnapshot randomChunk(){
+        return validChunks.get(random.nextInt(validChunks.size()));
     }
 
     private void chooseSpawnLocation(ChunkSnapshot snapshot) {
@@ -65,19 +65,6 @@ public class DistributionTask extends BukkitRunnable {
                 }
             }
         }
-    }
-
-    private ChunkSnapshot chooseChunk() {
-        int xhigh = topRightChunk.x;
-        int xlow = bottomLeftChunk.x;
-
-        int zhigh = bottomLeftChunk.y;
-        int zlow = topRightChunk.y;
-
-        int x = (int) ((betaDistribution.sample() * (xhigh - xlow)) + xlow);
-        int z = (int) ((betaDistribution.sample() * (zhigh - zlow)) + zlow);
-
-        return world.getChunkAt(x, z).getChunkSnapshot();
     }
 
     public RelicType randomRelicType() {

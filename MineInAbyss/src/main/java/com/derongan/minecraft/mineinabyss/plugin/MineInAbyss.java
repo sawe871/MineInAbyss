@@ -6,11 +6,13 @@ import com.derongan.minecraft.mineinabyss.plugin.Ascension.AscensionTask;
 import com.derongan.minecraft.mineinabyss.plugin.Configuration.ConfigurationManager;
 import com.derongan.minecraft.mineinabyss.plugin.Layer.Layer;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Loading.RelicLoader;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Looting.DistributionScanner;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Looting.DistributionTask;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Looting.LootableRelicScanner;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicCommandExecutor;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicDecayTask;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicUseListener;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.awt.*;
@@ -41,7 +43,7 @@ public final class MineInAbyss extends JavaPlugin {
 
             List<List<Integer>> sections = (List<List<Integer>>) layerData.get("sectionOffsets");
 
-            if(sections != null){
+            if (sections != null) {
                 context.getLogger().info("Section data found");
 
             } else {
@@ -52,11 +54,11 @@ public final class MineInAbyss extends JavaPlugin {
             layer.setSectionsOnLayer(sections, getServer().getWorld(layer.getName()));
             layer.setEffectsOnLayer((Collection<Map>) layerData.get("effects"));
             layer.setDeathMessage((String) layerData.getOrDefault("abyssDeathMessage", null));
-            layer.setOffset((int)layerData.getOrDefault("offset", 50));
+            layer.setOffset((int) layerData.getOrDefault("offset", 50));
             context.getLayerMap().put(layer.getName(), layer);
 
             layer.setPrevLayer(prev);
-            if(prev != null){
+            if (prev != null) {
                 prev.setNextLayer(layer);
             }
             prev = layer;
@@ -68,11 +70,20 @@ public final class MineInAbyss extends JavaPlugin {
         Runnable decayTask = new RelicDecayTask(TICKS_BETWEEN);
         getServer().getScheduler().scheduleSyncRepeatingTask(this, decayTask, TICKS_BETWEEN, TICKS_BETWEEN);
 
-        LootableRelicScanner scanner = new LootableRelicScanner();
-        scanner.clearAllRelics(getServer().getWorlds());
+//        LootableRelicScanner scanner = new LootableRelicScanner();
+//        scanner.clearAllRelics(getServer().getWorlds());
 
-        Runnable lootTask = new DistributionTask(context, getServer().getWorld("LayerOne"), new Point(190, 0), new Point(124, 60));
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, lootTask, TICKS_BETWEEN, 1);
+        getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
+            if (getServer().getWorld("LayerOne") != null) {
+                DistributionScanner distributionScanner = new DistributionScanner(getServer().getWorld("LayerOne"), context);
+                List<ChunkSnapshot> validChunks = distributionScanner.scan(new Point(190, 0), new Point(124, 60));
+
+                Runnable lootTask = new DistributionTask(context, getServer().getWorld("LayerOne"), validChunks);
+                getServer().getScheduler().scheduleSyncRepeatingTask(this, lootTask, TICKS_BETWEEN, 1);
+            } else {
+                getLogger().info("Bad world");
+            }
+        }, TickUtils.milisecondsToTicks(1000));
 
         getServer().getPluginManager().registerEvents(new AscensionListener(context), this);
         getServer().getPluginManager().registerEvents(new RelicUseListener(), this);
