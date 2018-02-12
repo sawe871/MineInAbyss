@@ -5,13 +5,18 @@ import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
 import com.derongan.minecraft.mineinabyss.API.Relic.Relics.RelicType;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,6 +53,19 @@ public class RelicUseListener implements Listener {
     }
 
     @EventHandler()
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        RelicType relicType = RelicType.getRegisteredRelicType(player.getInventory().getItemInMainHand());
+
+        if (relicType != null) {
+            if (relicType.getBehaviour() instanceof InteractEntityBehaviour) {
+                ((InteractEntityBehaviour) relicType.getBehaviour()).onInteractEntity(event);
+            }
+        }
+
+    }
+
+    @EventHandler()
     public void onEntityHit(EntityDamageByEntityEvent entityDamageByEntityEvent) {
         Entity damager = entityDamageByEntityEvent.getDamager();
 
@@ -68,12 +86,24 @@ public class RelicUseListener implements Listener {
     }
 
     @EventHandler()
-    public void onPlayerInteractEntity(PlayerArmorStandManipulateEvent e){
+    public void onPlayerInteractEntity(PlayerInteractAtEntityEvent e) {
         RelicType relicType = ArmorStandBehaviour.registeredRelics.get(e.getRightClicked().getUniqueId());
 
         if(relicType != null){
             if(relicType.getBehaviour() instanceof ArmorStandBehaviour){
-                ((ArmorStandBehaviour) relicType.getBehaviour()).onManipulateArmorStand(e);
+                ((ArmorStandBehaviour) relicType.getBehaviour()).onPlayerInteractEntity(e);
+            }
+        }
+    }
+
+    @EventHandler()
+    public void onEntityDamageEvent(EntityDamageEvent e){
+        if(e.getEntity() instanceof Player){
+            for (ItemStack itemStack : ((Player) e.getEntity()).getInventory().getArmorContents()) {
+                RelicType type = RelicType.getRegisteredRelicType(itemStack);
+                if (type.getBehaviour() instanceof OnDamageRelicBehaviour) {
+                    ((OnDamageRelicBehaviour) type.getBehaviour()).onDamage(e);
+                }
             }
         }
     }
@@ -91,7 +121,7 @@ public class RelicUseListener implements Listener {
             }
         }
 
-        if(playerInteractEvent.getAction().equals(Action.RIGHT_CLICK_BLOCK)){
+        if (playerInteractEvent.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
             Block block = playerInteractEvent.getClickedBlock();
 
             CleanUpWorldRelicBehaviour.cleanUp(block.getLocation());

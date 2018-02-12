@@ -2,6 +2,7 @@ package com.derongan.minecraft.mineinabyss.plugin.Relic.Loading;
 
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
 import com.derongan.minecraft.mineinabyss.API.Relic.Relics.RelicType;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.SlightlyOffzRelicType;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.StandardRelicType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
@@ -29,6 +30,9 @@ public class RelicLoader {
         for (StandardRelicType standardRelicType : StandardRelicType.values()) {
             RelicType.registerRelicType(standardRelicType);
         }
+//        for (SlightlyOffzRelicType slightlyOffzRelicType : SlightlyOffzRelicType.values()) {
+//            RelicType.registerRelicType(slightlyOffzRelicType);
+//        }
 
         String relicRelDir = (String) context.getConfig().get("storage.relicpath");
         URI fullURI = context.getPlugin().getDataFolder().toURI().resolve(relicRelDir);
