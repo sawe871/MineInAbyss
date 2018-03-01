@@ -17,6 +17,7 @@ subprojects {
             name = 'sonatype'
             url = 'https://oss.sonatype.org/content/groups/public/'
         }
+        jcenter()
         mavenLocal()
     }
 

@@ -1,6 +1,5 @@
 storage:
   relicpath: "relics/"
-  sqlitefile: "mineinabyss.db"
 layers:
   -
     name: LayerOne
@@ -14,6 +13,8 @@ layers:
       - [425,83,36]
       - [2953,515,41]
       - [4521,563,41]
+    sectionAreas:
+      - [185,1,126,58]
     lootTable:
       chunkrange:
         topRight: [190, 0]

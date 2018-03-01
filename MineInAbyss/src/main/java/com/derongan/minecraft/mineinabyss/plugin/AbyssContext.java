@@ -2,14 +2,27 @@ package com.derongan.minecraft.mineinabyss.plugin;
 
 import com.derongan.minecraft.mineinabyss.plugin.Ascension.AscensionData;
 import com.derongan.minecraft.mineinabyss.plugin.Layer.Layer;
+import com.derongan.minecraft.mineinabyss.plugin.Layer.Section;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.DistributionScanner;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization.LootSerializationManager;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.plugin.Plugin;
 
-import java.sql.Connection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
+
+import static java.lang.Integer.parseInt;
 
 /**
  * Stores context for the plugin, such as the plugin instance
@@ -21,7 +34,48 @@ public class AbyssContext {
     private Logger logger;
     private Configuration config;
     private int tickTime;
-    private Connection connection;
+
+    private ConcurrentMap<String, LoadingCache<Point, ChunkSpawnAreaHolder>> worldRarity;
+
+    public AbyssContext() {
+        worldRarity = new ConcurrentHashMap<>(5);
+    }
+
+    //TODO consider moving things into better places
+    public LoadingCache<Point, ChunkSpawnAreaHolder> getOrCreateCacheForWorld(String worldName) {
+        return worldRarity.computeIfAbsent(worldName, a -> {
+            return CacheBuilder
+                    .newBuilder()
+                    .softValues()
+                    .build(new CacheLoader<Point, ChunkSpawnAreaHolder>() {
+                        @Override
+                        public ChunkSpawnAreaHolder load(Point point) throws Exception {
+                            int chunkX = point.getX();
+                            int chunkZ = point.getZ();
+
+                            String filePath = plugin.getDataFolder().toPath().resolve(worldName).toString();
+
+                            LootSerializationManager someManager = new LootSerializationManager(filePath, AbyssContext.this);
+
+                            Path path = someManager.chunkToPath(chunkX, chunkZ);
+
+                            if (!path.toFile().exists()) {
+                                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
+                            }
+
+                            Reader reader;
+                            try {
+                                reader = new FileReader(path.toFile());
+                            } catch (FileNotFoundException e) {
+                                logger.warning("Failed to load chunk");
+                                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
+                            }
+
+                            return new ChunkSpawnAreaHolder(chunkX, chunkZ, someManager.deserializeChunk(reader));
+                        }
+                    });
+        });
+    }
 
     public Plugin getPlugin() {
         return plugin;

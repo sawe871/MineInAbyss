@@ -2,18 +2,26 @@ package com.derongan.minecraft.mineinabyss.plugin.Layer;
 
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
 import com.derongan.minecraft.mineinabyss.plugin.Ascension.Effect.AscensionEffectBuilder;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkSupplier;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.DistributionScanner;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point;
 import com.derongan.minecraft.mineinabyss.plugin.TickUtils;
 import com.google.common.collect.ImmutableSet;
+import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import java.nio.file.Path;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Layer {
     private String name;
     private Set<AscensionEffectBuilder> effectsOnLayer = new HashSet<>();
-    private List<Section> sections;
+    private List<Section> sections = new ArrayList<>(4);
     private AbyssContext context;
     private String deathMessage;
     private int offset = 50;
@@ -51,10 +59,46 @@ public class Layer {
     }
 
 
-    public void setSectionsOnLayer(List<List<Integer>> points, World world) {
-        sections = points.stream().map(a -> {
-            return new Section(new Vector(a.get(0), 0, a.get(1)), a.get(2), world);
-        }).collect(Collectors.toList());
+    public void setSectionsOnLayer(List<List<Integer>> references, List<List<Integer>> regions, World world) {
+        for (int i = 0; i < references.size(); i++) {
+            List<Integer> offsetVals = references.get(0);
+            Vector reference = new Vector(offsetVals.get(0), 0, offsetVals.get(1));
+
+            Section section = new Section(reference, offsetVals.get(2), world);
+
+            if (regions.size() > i) {
+                Point top = new Point(regions.get(i).get(0), 0, regions.get(0).get(1));
+                Point bottom = new Point(regions.get(i).get(2), 0, regions.get(i).get(3));
+                section.setupRegion(top, bottom);
+            }
+
+            sections.add(section);
+            DistributionScanner scanner =
+                    new DistributionScanner(context.getPlugin().getServer().getWorld(world.getName()), context);
+
+
+            if (section.hasRegions()) {
+                Point top = section.getTop();
+                Point bottom = section.getBottom();
+
+                final String outDir = String.format(world.getName() + "/section_%d", i);
+                final Path path = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(outDir);
+
+                if (!path.toFile().exists()) {
+                    ChunkSupplier supplier = new ChunkSupplier(top, bottom, world);
+
+                    Stream<ChunkSnapshot> stream = Stream.generate(supplier).limit(supplier.getNumberOfChunks()).collect(Collectors.toList()).stream();
+
+                    new Thread(() -> {
+                        context.getLogger()
+                                .info(String.format("Starting Rarity Scan for %s", outDir));
+                        scanner.scan(stream, path);
+                        context.getLogger()
+                                .info(String.format("Finished Rarity Scan for %s", outDir));
+                    }).start();
+                }
+            }
+        }
     }
 
     public void setEffectsOnLayer(Collection<Map> effects) {
