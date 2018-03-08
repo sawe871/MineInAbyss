@@ -7,6 +7,7 @@ import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkSpawnAr
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.DistributionScanner;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization.LootSerializationManager;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.SpawnArea;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -20,6 +21,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static java.lang.Integer.parseInt;
@@ -35,46 +37,44 @@ public class AbyssContext {
     private Configuration config;
     private int tickTime;
 
-    private ConcurrentMap<String, LoadingCache<Point, ChunkSpawnAreaHolder>> worldRarity;
+    private ConcurrentMap<String, ConcurrentMap<Point, ChunkSpawnAreaHolder>> worldRarity;
 
     public AbyssContext() {
         worldRarity = new ConcurrentHashMap<>(5);
     }
 
-    //TODO consider moving things into better places
-    public LoadingCache<Point, ChunkSpawnAreaHolder> getOrCreateCacheForWorld(String worldName) {
-        return worldRarity.computeIfAbsent(worldName, a -> {
-            return CacheBuilder
-                    .newBuilder()
-                    .softValues()
-                    .build(new CacheLoader<Point, ChunkSpawnAreaHolder>() {
-                        @Override
-                        public ChunkSpawnAreaHolder load(Point point) throws Exception {
-                            int chunkX = point.getX();
-                            int chunkZ = point.getZ();
+    public ChunkSpawnAreaHolder getSpawnAreas(String worldName, Point point) {
+        ConcurrentMap<Point, ChunkSpawnAreaHolder> map = getOrCreateCacheForWorld(worldName);
 
-                            String filePath = plugin.getDataFolder().toPath().resolve(worldName).toString();
+        return map.computeIfAbsent(point, a -> {
+            int chunkX = point.getX();
+            int chunkZ = point.getZ();
 
-                            LootSerializationManager someManager = new LootSerializationManager(filePath, AbyssContext.this);
+            String filePath = plugin.getDataFolder().toPath().resolve("distribution").resolve(worldName).toString();
 
-                            Path path = someManager.chunkToPath(chunkX, chunkZ);
+            LootSerializationManager someManager = new LootSerializationManager(filePath, AbyssContext.this);
 
-                            if (!path.toFile().exists()) {
-                                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
-                            }
+            Path path = someManager.chunkToPath(chunkX, chunkZ);
 
-                            Reader reader;
-                            try {
-                                reader = new FileReader(path.toFile());
-                            } catch (FileNotFoundException e) {
-                                logger.warning("Failed to load chunk");
-                                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
-                            }
+            if (!path.toFile().exists()) {
+                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
+            }
 
-                            return new ChunkSpawnAreaHolder(chunkX, chunkZ, someManager.deserializeChunk(reader));
-                        }
-                    });
+            Reader reader;
+            try {
+                reader = new FileReader(path.toFile());
+            } catch (FileNotFoundException e) {
+                logger.warning("Failed to load chunk");
+                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
+            }
+
+            return new ChunkSpawnAreaHolder(chunkX, chunkZ, someManager.deserializeChunk(reader));
         });
+    }
+
+    //TODO consider moving things into better places
+    public ConcurrentMap<Point, ChunkSpawnAreaHolder> getOrCreateCacheForWorld(String worldName) {
+        return worldRarity.computeIfAbsent(worldName, a -> new ConcurrentHashMap<>());
     }
 
     public Plugin getPlugin() {

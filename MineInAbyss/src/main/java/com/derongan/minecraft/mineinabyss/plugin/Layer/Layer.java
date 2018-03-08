@@ -29,6 +29,8 @@ public class Layer {
     private Layer nextLayer;
     private Layer prevLayer;
 
+    public volatile boolean ready = false;
+
     public Layer getNextLayer() {
         return nextLayer;
     }
@@ -61,7 +63,7 @@ public class Layer {
 
     public void setSectionsOnLayer(List<List<Integer>> references, List<List<Integer>> regions, World world) {
         for (int i = 0; i < references.size(); i++) {
-            List<Integer> offsetVals = references.get(0);
+            List<Integer> offsetVals = references.get(i);
             Vector reference = new Vector(offsetVals.get(0), 0, offsetVals.get(1));
 
             Section section = new Section(reference, offsetVals.get(2), world);
@@ -73,8 +75,7 @@ public class Layer {
             }
 
             sections.add(section);
-            DistributionScanner scanner =
-                    new DistributionScanner(context.getPlugin().getServer().getWorld(world.getName()), context);
+            DistributionScanner scanner = new DistributionScanner(world, context);
 
 
             if (section.hasRegions()) {
@@ -87,15 +88,16 @@ public class Layer {
                 if (!path.toFile().exists()) {
                     ChunkSupplier supplier = new ChunkSupplier(top, bottom, world);
 
-                    Stream<ChunkSnapshot> stream = Stream.generate(supplier).limit(supplier.getNumberOfChunks()).collect(Collectors.toList()).stream();
+                    Stream<ChunkSnapshot> stream = Stream.generate(supplier).limit(supplier.getNumberOfChunks());
 
-                    new Thread(() -> {
-                        context.getLogger()
-                                .info(String.format("Starting Rarity Scan for %s", outDir));
-                        scanner.scan(stream, path);
-                        context.getLogger()
-                                .info(String.format("Finished Rarity Scan for %s", outDir));
-                    }).start();
+                    context.getLogger().info(String.format("Starting Rarity Scan for %s", outDir));
+                    scanner.scan(stream, path);
+                    context.getLogger().info(String.format("Finished Rarity Scan for %s", outDir));
+
+                    //TODO this wont work because we load multiple per layer
+                    ready = true;
+                } else {
+                    ready = true;
                 }
             }
         }

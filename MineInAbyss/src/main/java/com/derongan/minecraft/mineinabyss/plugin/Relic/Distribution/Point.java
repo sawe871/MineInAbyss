@@ -30,8 +30,8 @@ public class Point implements ConfigurationSerializable {
     public Map<String, Object> serialize() {
         Map<String, Object> serialized = new HashMap<>();
         serialized.put("x",x);
-        serialized.put("y",x);
-        serialized.put("z",x);
+        serialized.put("y",y);
+        serialized.put("z",z);
 
         return serialized;
     }

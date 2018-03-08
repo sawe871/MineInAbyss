@@ -83,6 +83,10 @@ public final class MineInAbyss extends JavaPlugin {
         Runnable decayTask = new RelicDecayTask(TICKS_BETWEEN);
         getServer().getScheduler().scheduleSyncRepeatingTask(this, decayTask, TICKS_BETWEEN, TICKS_BETWEEN);
 
+        Runnable lootTask = new DistributionTask(context, spawnTest);
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, lootTask, TICKS_BETWEEN, TICKS_BETWEEN);
+
+
         getServer().getPluginManager().registerEvents(new AscensionListener(context), this);
         getServer().getPluginManager().registerEvents(new RelicUseListener(), this);
 

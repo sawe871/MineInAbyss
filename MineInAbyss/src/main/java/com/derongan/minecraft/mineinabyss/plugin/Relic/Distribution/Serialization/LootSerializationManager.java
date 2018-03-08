@@ -18,13 +18,10 @@ import java.util.List;
 
 public class LootSerializationManager {
     private String outDir;
-    private Yaml yaml;
     private AbyssContext context;
 
     public LootSerializationManager(String outDir, AbyssContext context) {
         this.outDir = outDir;
-        this.yaml = new Yaml();
-
         this.context = context;
     }
 
@@ -54,21 +51,6 @@ public class LootSerializationManager {
         YamlConfiguration config = new YamlConfiguration();
         config.set("spawnareas", holder.getSpawnAreas());
         return config.saveToString();
-    }
-
-    public ChunkSpawnAreaHolder deserializeChunkArea(int chunkX, int chunkZ) {
-        Path path = chunkToPath(chunkX, chunkZ);
-
-        try {
-            List<SpawnArea> spawnAreas = deserializeChunk(new FileReader(path.toFile()));
-            if(spawnAreas == null)
-                return null;
-            return new ChunkSpawnAreaHolder(chunkX, chunkZ, spawnAreas);
-        } catch (FileNotFoundException e) {
-            context.getLogger().warning(String.format("Failed to load %s", path.toString()));
-
-            return null;
-        }
     }
 
     public List<SpawnArea> deserializeChunk(Reader yamlReader) {
