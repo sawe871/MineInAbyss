@@ -2,15 +2,9 @@ package com.derongan.minecraft.mineinabyss.plugin;
 
 import com.derongan.minecraft.mineinabyss.plugin.Ascension.AscensionData;
 import com.derongan.minecraft.mineinabyss.plugin.Layer.Layer;
-import com.derongan.minecraft.mineinabyss.plugin.Layer.Section;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.DistributionScanner;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization.LootSerializationManager;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.SpawnArea;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.plugin.Plugin;
 
@@ -21,7 +15,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static java.lang.Integer.parseInt;

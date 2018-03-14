@@ -6,6 +6,7 @@ import com.derongan.minecraft.mineinabyss.plugin.Ascension.AscensionTask;
 import com.derongan.minecraft.mineinabyss.plugin.Configuration.ConfigurationManager;
 import com.derongan.minecraft.mineinabyss.plugin.Layer.Layer;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.*;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Loading.RelicLoader;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicCommandExecutor;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicDecayTask;
@@ -30,7 +31,7 @@ public final class MineInAbyss extends JavaPlugin {
         ConfigurationManager.createConfig(this);
 
         ConfigurationSerialization.registerClass(SpawnArea.class);
-        ConfigurationSerialization.registerClass(com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point.class);
+        ConfigurationSerialization.registerClass(Point.class);
 
         context = new AbyssContext();
         context.setPlugin(this);
@@ -78,14 +79,8 @@ public final class MineInAbyss extends JavaPlugin {
         Runnable mainTask = new AscensionTask(context, TICKS_BETWEEN);
         getServer().getScheduler().scheduleSyncRepeatingTask(this, mainTask, TICKS_BETWEEN, TICKS_BETWEEN);
 
-        World spawnTest = getServer().getWorld("LayerOne");
-
         Runnable decayTask = new RelicDecayTask(TICKS_BETWEEN);
         getServer().getScheduler().scheduleSyncRepeatingTask(this, decayTask, TICKS_BETWEEN, TICKS_BETWEEN);
-
-        Runnable lootTask = new DistributionTask(context, spawnTest);
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, lootTask, TICKS_BETWEEN, TICKS_BETWEEN);
-
 
         getServer().getPluginManager().registerEvents(new AscensionListener(context), this);
         getServer().getPluginManager().registerEvents(new RelicUseListener(), this);

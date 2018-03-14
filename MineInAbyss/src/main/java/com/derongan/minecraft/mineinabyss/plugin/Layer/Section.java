@@ -1,6 +1,6 @@
 package com.derongan.minecraft.mineinabyss.plugin.Layer;
 
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 

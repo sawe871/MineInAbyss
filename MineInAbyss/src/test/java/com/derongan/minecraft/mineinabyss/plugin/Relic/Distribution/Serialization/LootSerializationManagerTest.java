@@ -2,8 +2,8 @@ package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serializati
 
 
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.SpawnArea;
 import org.bukkit.Server;
 import org.bukkit.World;

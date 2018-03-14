@@ -2,6 +2,8 @@ package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.API.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.plugin.TickUtils;
 //import org.apache.commons.math3.distribution.BetaDistribution;
@@ -9,8 +11,6 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
 
 public class DistributionTask implements Runnable {
     private AbyssContext context;

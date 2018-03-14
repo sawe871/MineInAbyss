@@ -1,8 +1,10 @@
 package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkFilters.EnoughRoomFilter;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkFilters.ValidChunkFilter;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkFilters.EnoughRoomFilter;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkFilters.ValidChunkFilter;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Rarity.ChunkRaritySnapshot;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Rarity.RarityModifiers.*;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization.LootSerializationManager;

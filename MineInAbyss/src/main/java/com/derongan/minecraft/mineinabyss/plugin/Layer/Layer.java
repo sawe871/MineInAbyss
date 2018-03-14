@@ -2,20 +2,17 @@ package com.derongan.minecraft.mineinabyss.plugin.Layer;
 
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
 import com.derongan.minecraft.mineinabyss.plugin.Ascension.Effect.AscensionEffectBuilder;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.ChunkSupplier;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSupplier;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.DistributionScanner;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Point;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
 import com.derongan.minecraft.mineinabyss.plugin.TickUtils;
 import com.google.common.collect.ImmutableSet;
-import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Layer {
@@ -75,31 +72,6 @@ public class Layer {
             }
 
             sections.add(section);
-            DistributionScanner scanner = new DistributionScanner(world, context);
-
-
-            if (section.hasRegions()) {
-                Point top = section.getTop();
-                Point bottom = section.getBottom();
-
-                final String outDir = String.format(world.getName() + "/section_%d", i);
-                final Path path = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(outDir);
-
-                if (!path.toFile().exists()) {
-                    ChunkSupplier supplier = new ChunkSupplier(top, bottom, world);
-
-                    Stream<ChunkSnapshot> stream = Stream.generate(supplier).limit(supplier.getNumberOfChunks());
-
-                    context.getLogger().info(String.format("Starting Rarity Scan for %s", outDir));
-                    scanner.scan(stream, path);
-                    context.getLogger().info(String.format("Finished Rarity Scan for %s", outDir));
-
-                    //TODO this wont work because we load multiple per layer
-                    ready = true;
-                } else {
-                    ready = true;
-                }
-            }
         }
     }
 
