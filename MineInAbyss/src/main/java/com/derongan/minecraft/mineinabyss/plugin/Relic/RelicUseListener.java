@@ -3,6 +3,7 @@ package com.derongan.minecraft.mineinabyss.plugin.Relic;
 import com.derongan.minecraft.mineinabyss.API.Relic.Behaviour.*;
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
 import com.derongan.minecraft.mineinabyss.API.Relic.Relics.RelicType;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.LootableRelicType;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
@@ -87,18 +88,20 @@ public class RelicUseListener implements Listener {
 
     @EventHandler()
     public void onPlayerInteractEntity(PlayerInteractAtEntityEvent e) {
-        RelicType relicType = ArmorStandBehaviour.registeredRelics.get(e.getRightClicked().getUniqueId());
+        if (e.getRightClicked() instanceof ArmorStand &&
+                !((ArmorStand) e.getRightClicked()).isVisible() &&
+                e.getRightClicked().getCustomName().equals("lootable")) {
+            RelicType relicType = new LootableRelicType();
 
-        if(relicType != null){
-            if(relicType.getBehaviour() instanceof ArmorStandBehaviour){
+            if (relicType.getBehaviour() instanceof ArmorStandBehaviour) {
                 ((ArmorStandBehaviour) relicType.getBehaviour()).onPlayerInteractEntity(e);
             }
         }
     }
 
     @EventHandler()
-    public void onEntityDamageEvent(EntityDamageEvent e){
-        if(e.getEntity() instanceof Player){
+    public void onEntityDamageEvent(EntityDamageEvent e) {
+        if (e.getEntity() instanceof Player) {
             for (ItemStack itemStack : ((Player) e.getEntity()).getInventory().getArmorContents()) {
                 RelicType type = RelicType.getRegisteredRelicType(itemStack);
                 if (type.getBehaviour() instanceof OnDamageRelicBehaviour) {

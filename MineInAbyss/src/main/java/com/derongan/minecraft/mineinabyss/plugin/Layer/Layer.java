@@ -26,8 +26,6 @@ public class Layer {
     private Layer nextLayer;
     private Layer prevLayer;
 
-    public volatile boolean ready = false;
-
     public Layer getNextLayer() {
         return nextLayer;
     }

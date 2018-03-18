@@ -21,3 +21,9 @@ commands:
   sectionon:
     description: why
     usage: /sectionon
+  preparelootareas:
+    description: creates spawn areas for a world
+    usage: /preparelootareas worldname
+  loadlootareas:
+    description: loads the loot areas for a layer and starts the task
+    usage: /loadlootareas worldname

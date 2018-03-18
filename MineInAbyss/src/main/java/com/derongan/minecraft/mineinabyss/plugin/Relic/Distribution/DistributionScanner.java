@@ -2,14 +2,19 @@ package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSupplier;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkFilters.EnoughRoomFilter;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkFilters.ValidChunkFilter;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Rarity.ChunkRaritySnapshot;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Rarity.RarityModifiers.*;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization.LootSerializationManager;
+import com.derongan.minecraft.mineinabyss.plugin.TickUtils;
+import com.google.common.collect.Iterators;
+import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -22,7 +27,7 @@ public class DistributionScanner {
     private World world;
     private AbyssContext context;
 
-    private List<RarityModifier> modifiers = Arrays.asList(
+    private final List<RarityModifier> modifiers = Arrays.asList(
             new InvalidRarityModifier(),
             new LightingRarityModifier(),
             new BackingRarityModifier(),
@@ -38,15 +43,38 @@ public class DistributionScanner {
      * Generate config file for each chunk containing the list of spawn points in a chunk.
      * Do nothing if yaml already exists.
      *
-     * @param chunks    Stream of chunks
+     * @param top    Topmost point
+     * @param bottom    Bottommost point
      * @param path    the directory to save to
      */
-    public void scan(Stream<ChunkSnapshot> chunks, Path path) {
+    public void scan(Point top, Point bottom, Path path, int section) {
+        ChunkSupplier supplier = new ChunkSupplier(top, bottom, world);
+        Stream<ChunkSnapshot> chunks = Stream.generate(supplier).limit(supplier.getNumberOfChunks());
         LootSerializationManager manager = new LootSerializationManager(path.normalize().toString(), context);
 
         Stream<ChunkSnapshot> filtered = doFilterChunks(chunks);
 
-        filtered.forEach(a -> {
+        Iterator<List<ChunkSnapshot>> iterator = Iterators.partition(filtered.iterator(), 100);
+
+        doNextChunk(iterator, manager, section);
+    }
+
+    // TODO use streams?
+    private void doNextChunk(Iterator<List<ChunkSnapshot>> snapshotIterator, LootSerializationManager manager, int section){
+        BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
+
+        if(snapshotIterator.hasNext()) {
+            List<ChunkSnapshot> chunkSnapshots = snapshotIterator.next();
+
+            chunkSnapshots.forEach(a->doSerialize(a, manager));
+
+            scheduler.scheduleSyncDelayedTask(context.getPlugin(), ()->doNextChunk(snapshotIterator, manager, section), 2);
+        } else{
+            Bukkit.broadcastMessage(String.format("Finished generating %s section %d", world.getName(), section));
+        }
+    }
+
+    private void doSerialize(ChunkSnapshot a, LootSerializationManager manager){
             int chunkX = a.getX();
             int chunkZ = a.getZ();
 
@@ -55,7 +83,6 @@ public class DistributionScanner {
 
             ChunkSpawnAreaHolder holder = new ChunkSpawnAreaHolder(chunkX, chunkZ, internal);
             manager.serializeChunkAreas(holder);
-        });
     }
 
     private List<SpawnArea> createSpawnAreas(ChunkRaritySnapshot snapshot) {

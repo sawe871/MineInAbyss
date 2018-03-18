@@ -11,9 +11,11 @@ import com.derongan.minecraft.mineinabyss.plugin.Relic.Loading.RelicLoader;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicCommandExecutor;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicDecayTask;
 import com.derongan.minecraft.mineinabyss.plugin.Relic.RelicUseListener;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,6 +78,15 @@ public final class MineInAbyss extends JavaPlugin {
             prev = layer;
         }
 
+
+
+
+        RelicLoader.loadAllRelics(context);
+        setupCommandExecutors();
+        setupTasks();
+    }
+
+    private void setupTasks(){
         Runnable mainTask = new AscensionTask(context, TICKS_BETWEEN);
         getServer().getScheduler().scheduleSyncRepeatingTask(this, mainTask, TICKS_BETWEEN, TICKS_BETWEEN);
 
@@ -85,9 +96,11 @@ public final class MineInAbyss extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new AscensionListener(context), this);
         getServer().getPluginManager().registerEvents(new RelicUseListener(), this);
 
-        setupCommandExecutors();
-
-        RelicLoader.loadAllRelics(context);
+        getServer().getWorlds().forEach(a->{
+            DistributionTask distributionTask = new DistributionTask(context, a);
+            if(distributionTask.shouldSchedule())
+                distributionTask.runTaskTimer(this, TICKS_BETWEEN, TickUtils.milisecondsToTicks(300));
+        });
     }
 
 
@@ -100,6 +113,10 @@ public final class MineInAbyss extends JavaPlugin {
         AscensionCommandExecutor ascensionCommandExecutor = new AscensionCommandExecutor(context);
         this.getCommand("sectionon").setExecutor(ascensionCommandExecutor);
         this.getCommand("sectionoff").setExecutor(ascensionCommandExecutor);
+
+        DistributionCommandExecutor distributionCommandExecutor = new DistributionCommandExecutor(context);
+        this.getCommand("preparelootareas").setExecutor(distributionCommandExecutor);
+        this.getCommand("loadlootareas").setExecutor(distributionCommandExecutor);
     }
 
     @Override

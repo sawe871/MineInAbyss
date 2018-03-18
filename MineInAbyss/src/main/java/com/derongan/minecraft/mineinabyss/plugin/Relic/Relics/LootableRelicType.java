@@ -64,12 +64,8 @@ public class LootableRelicType implements RelicType {
         as.setItemInHand(item);
         as.setRightArmPose(new EulerAngle(-Math.PI / 2, -Math.PI / 2, 0));
 
-        if (type.getRarity() == RelicRarity.SPECIAL_GRADE) {
-            as.setCustomName(ChatColor.GRAY.toString() + ChatColor.MAGIC + type.getName());
-        } else {
-            as.setCustomName(ChatColor.GRAY + type.getName());
-        }
-        as.setCustomNameVisible(true);
+        as.setCustomName("lootable");
+        as.setCustomNameVisible(false);
         as.setInvulnerable(true);
 
         DecayableRelicBehaviour.registerRelic(as, lifetime, this);
