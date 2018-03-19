@@ -108,6 +108,8 @@ public class DistributionTask extends BukkitRunnable {
     public void run() {
         sections.keySet().forEach(sectionName -> {
             for (Player player : world.getPlayers()) {
+                if(!player.hasPermission("seelootspawns"))
+                    return;
                 int px = player.getLocation().getChunk().getX();
                 int pz = player.getLocation().getChunk().getZ();
                 for (int x = -2; x < 3; x++) {
