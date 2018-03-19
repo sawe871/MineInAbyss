@@ -30,46 +30,6 @@ public class AbyssContext {
     private Configuration config;
     private int tickTime;
 
-    private ConcurrentMap<String, ConcurrentMap<Point, ChunkSpawnAreaHolder>> worldRarity;
-
-    public AbyssContext() {
-        worldRarity = new ConcurrentHashMap<>(5);
-    }
-
-    public ChunkSpawnAreaHolder getSpawnAreas(String worldName, Point point) {
-        ConcurrentMap<Point, ChunkSpawnAreaHolder> map = getOrCreateCacheForWorld(worldName);
-
-        return map.computeIfAbsent(point, a -> {
-            int chunkX = point.getX();
-            int chunkZ = point.getZ();
-
-            String filePath = plugin.getDataFolder().toPath().resolve("distribution").resolve(worldName).toString();
-
-            LootSerializationManager someManager = new LootSerializationManager(filePath, AbyssContext.this);
-
-            Path path = someManager.chunkToPath(chunkX, chunkZ);
-
-            if (!path.toFile().exists()) {
-                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
-            }
-
-            Reader reader;
-            try {
-                reader = new FileReader(path.toFile());
-            } catch (FileNotFoundException e) {
-                logger.warning("Failed to load chunk");
-                return new ChunkSpawnAreaHolder(chunkX, chunkZ, Collections.emptyList());
-            }
-
-            return new ChunkSpawnAreaHolder(chunkX, chunkZ, someManager.deserializeChunk(reader));
-        });
-    }
-
-    //TODO consider moving things into better places
-    public ConcurrentMap<Point, ChunkSpawnAreaHolder> getOrCreateCacheForWorld(String worldName) {
-        return worldRarity.computeIfAbsent(worldName, a -> new ConcurrentHashMap<>());
-    }
-
     public Plugin getPlugin() {
         return plugin;
     }
