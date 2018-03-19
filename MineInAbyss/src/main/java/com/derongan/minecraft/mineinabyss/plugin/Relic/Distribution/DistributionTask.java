@@ -24,6 +24,7 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DistributionTask extends BukkitRunnable {
@@ -36,6 +37,14 @@ public class DistributionTask extends BukkitRunnable {
     private Map<String, List<Point>> sectionLootChunks;
 
     private Random random = new Random();
+
+    //#TODO this is temp
+    private List<RelicType> acceptable = Arrays.asList(
+            StandardRelicType.ROPE_LADDER,
+            StandardRelicType.BLAZE_REAP,
+            StandardRelicType.PUSHER,
+            StandardRelicType.THOUSAND_MEN_PINS
+    );
 
     private boolean shouldSchedule = true;
 
@@ -61,7 +70,7 @@ public class DistributionTask extends BukkitRunnable {
                 shouldSchedule = false;
             } else {
                 Arrays.stream(availSections).forEach(a -> {
-                    sections.put(a, CacheBuilder.newBuilder().softValues().build(
+                    sections.put(a, CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build(
                             new SpawnAreaHolderCacheLoader(filePath.resolve(a).toString())
                     ));
 
@@ -108,25 +117,28 @@ public class DistributionTask extends BukkitRunnable {
     public void run() {
         sections.keySet().forEach(sectionName -> {
             for (Player player : world.getPlayers()) {
-                if(!player.hasPermission("seelootspawns"))
-                    return;
-                int px = player.getLocation().getChunk().getX();
-                int pz = player.getLocation().getChunk().getZ();
-                for (int x = -2; x < 3; x++) {
-                    for (int z = -2; z < 3; z++) {
-                        Point key = new Point(x + px, 0, z + pz);
-                        ChunkSpawnAreaHolder holder = null;
-                        try {
-                            holder = sections.get(sectionName).get(key);
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
+                if (context.getPlayerAcensionDataMap().get(player.getUniqueId()).isDev()) {
+                    int px = player.getLocation().getChunk().getX();
+                    int pz = player.getLocation().getChunk().getZ();
+                    for (int x = -2; x < 3; x++) {
+                        for (int z = -2; z < 3; z++) {
+                            Point key = new Point(x + px, 0, z + pz);
+                            ChunkSpawnAreaHolder holder = null;
+                            try {
+                                holder = sections.get(sectionName).get(key);
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                            holder.getSpawnAreas().forEach(SpawnArea::displayRegion);
                         }
-                        holder.getSpawnAreas().forEach(SpawnArea::displayRegion);
                     }
                 }
             }
 
-            Point chosen = sectionLootChunks.get(sectionName).get(random.nextInt(sectionLootChunks.size()));
+            if(sectionLootChunks.get(sectionName).size() == 0)
+                return;
+
+            Point chosen = sectionLootChunks.get(sectionName).get(random.nextInt(sectionLootChunks.get(sectionName).size()));
 
             ChunkSpawnAreaHolder holder = null;
             try {
@@ -148,7 +160,7 @@ public class DistributionTask extends BukkitRunnable {
     }
 
     public RelicType randomRelicType() {
-        return StandardRelicType.ROPE_LADDER;
+        return acceptable.get(random.nextInt(acceptable.size()));
 //        Object[] relicTypes = RelicType.registeredRelics.values().toArray();
 //        return (RelicType) relicTypes[random.nextInt(relicTypes.length)];
     }

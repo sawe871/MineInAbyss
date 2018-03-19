@@ -49,6 +49,11 @@ public class Point implements ConfigurationSerializable {
         return String.format("Point: %d %d %d", x, y, z);
     }
 
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
     public int getX() {
         return x;
     }
