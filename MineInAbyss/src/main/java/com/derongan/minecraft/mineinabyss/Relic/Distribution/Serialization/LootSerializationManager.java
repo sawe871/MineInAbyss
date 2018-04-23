@@ -1,8 +1,8 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization;
 
-import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.SpawnArea;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
+import com.derongan.minecraft.mineinabyss.AbyssContext;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.*;

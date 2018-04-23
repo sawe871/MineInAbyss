@@ -90,4 +90,9 @@ public class PlayerDataImpl implements PlayerData {
     public void setDistanceAscended(double distanceAscended) {
         this.distanceAscended = distanceAscended;
     }
+
+    @Override
+    public boolean canSeeLootSpawns() {
+        return true;
+    }
 }

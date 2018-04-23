@@ -2,9 +2,10 @@ package com.derongan.minecraft.mineinabyss.Relic;
 
 import com.derongan.minecraft.mineinabyss.Relic.Behaviour.*;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.LootableRelicType;
+import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

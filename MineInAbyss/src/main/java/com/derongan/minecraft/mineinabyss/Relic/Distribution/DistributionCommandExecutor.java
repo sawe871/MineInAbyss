@@ -1,22 +1,18 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
-import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSupplier;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.AbyssContext;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.event.world.WorldLoadEvent;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class DistributionCommandExecutor implements CommandExecutor {
     private AbyssContext context;

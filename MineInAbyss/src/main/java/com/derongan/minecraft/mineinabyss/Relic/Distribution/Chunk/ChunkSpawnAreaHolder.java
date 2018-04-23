@@ -1,6 +1,6 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk;
 
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.SpawnArea;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
 
 import java.util.List;
 

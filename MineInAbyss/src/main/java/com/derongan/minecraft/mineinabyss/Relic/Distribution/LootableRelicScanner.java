@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;

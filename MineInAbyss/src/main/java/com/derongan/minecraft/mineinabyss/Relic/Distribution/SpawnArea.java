@@ -1,7 +1,7 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
-import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.AbyssContext;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;

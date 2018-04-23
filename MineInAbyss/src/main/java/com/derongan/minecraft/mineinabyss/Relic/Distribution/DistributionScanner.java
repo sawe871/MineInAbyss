@@ -1,15 +1,16 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
-import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSupplier;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkFilters.EnoughRoomFilter;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkFilters.ValidChunkFilter;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Rarity.ChunkRaritySnapshot;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Rarity.RarityModifiers.*;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization.LootSerializationManager;
-import com.derongan.minecraft.mineinabyss.plugin.TickUtils;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkFilters.EnoughRoomFilter;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkFilters.ValidChunkFilter;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.ChunkRaritySnapshot;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.RarityModifiers.*;
+import com.derongan.minecraft.mineinabyss.AbyssContext;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSupplier;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.RarityModifiers.*;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
+import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import com.google.common.collect.Iterators;
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;

@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Rarity.RarityModifiers;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.RarityModifiers;
 
 import org.bukkit.ChunkSnapshot;
 

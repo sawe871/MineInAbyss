@@ -1,23 +1,19 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
-import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
+import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
+import com.derongan.minecraft.mineinabyss.Relic.Relics.StandardRelicType;
+import com.derongan.minecraft.mineinabyss.World.Layer;
 import com.derongan.minecraft.mineinabyss.util.TickUtils;
-import org.bukkit.Location;
-import com.derongan.minecraft.mineinabyss.API.Relic.Relics.RelicType;
-import com.derongan.minecraft.mineinabyss.plugin.AbyssContext;
-import com.derongan.minecraft.mineinabyss.plugin.Layer.Layer;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.Point;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Serialization.LootSerializationManager;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.LootableRelicType;
-import com.derongan.minecraft.mineinabyss.plugin.Relic.Relics.StandardRelicType;
-import com.derongan.minecraft.mineinabyss.plugin.TickUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -53,7 +49,7 @@ public class DistributionTask extends BukkitRunnable {
 
     private boolean shouldSchedule = true;
 
-    public DistributionTask(AbyssContext context, World world) {
+    public DistributionTask(AbyssContext context, Layer layer) {
         this.context = context;
         this.world = world;
         this.sections = new HashMap<>();
@@ -62,8 +58,6 @@ public class DistributionTask extends BukkitRunnable {
         lootableRelicType = new LootableRelicType();
 
         Path filePath = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(world.getName());
-
-        Layer layer = context.getLayerMap().get(world.getName());
 
         // Cancel if world is not abyss or has no data
         if (layer == null || !filePath.toFile().exists()) {
@@ -122,7 +116,7 @@ public class DistributionTask extends BukkitRunnable {
     public void run() {
         sections.keySet().forEach(sectionName -> {
             for (Player player : world.getPlayers()) {
-                if (context.getPlayerAcensionDataMap().get(player.getUniqueId()).isDev()) {
+                if (context.getPlayerDataMap().get(player.getUniqueId()).canSeeLootSpawns()) {
                     int px = player.getLocation().getChunk().getX();
                     int pz = player.getLocation().getChunk().getZ();
                     for (int x = -2; x < 3; x++) {

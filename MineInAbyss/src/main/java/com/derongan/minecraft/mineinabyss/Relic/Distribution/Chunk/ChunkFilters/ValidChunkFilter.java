@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.plugin.Relic.Distribution.Chunk.ChunkFilters;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkFilters;
 
 import org.bukkit.ChunkSnapshot;
 

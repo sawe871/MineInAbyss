@@ -87,4 +87,9 @@ public interface PlayerData {
      * TODO should this be exposed like this?
      */
     void setDistanceAscended(double distanceAscended);
+
+    /**
+     * Get whether the player can see loot areas or not
+     */
+    boolean canSeeLootSpawns();
 }
