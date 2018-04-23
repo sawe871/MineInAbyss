@@ -1,7 +1,7 @@
 name: MineInAbyss
 version: @plugin_version@
 author: Derongan
-main: com.derongan.minecraft.mineinabyss.plugin.MineInAbyss
+main: com.derongan.minecraft.mineinabyss.MineInAbyss
 prefix: MiB
 description: A mod that adds abyss effects
 
@@ -21,9 +21,9 @@ commands:
   sectionon:
     description: why
     usage: /sectionon
-  preparelootareas:
-    description: creates spawn areas for a world
-    usage: /preparelootareas worldname
-  loadlootareas:
-    description: loads the loot areas for a layer and starts the task
-    usage: /loadlootareas worldname
+  curseon:
+    description: Turn on curse
+    usage: /curseon
+  curseoff:
+    description: Turn off curse
+    usage: /curseoff
