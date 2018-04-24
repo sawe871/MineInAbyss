@@ -21,6 +21,7 @@ layers:
       -
         refTop: [2370, 236, 141]
         refBottom: [2500, 20, 123]
+        area: [185,1,126,58]
         world: LayerOne
       -
         refTop: [3908, 235, 107]

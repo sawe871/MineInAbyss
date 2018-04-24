@@ -46,4 +46,10 @@ public interface Section {
      * @return The name of the world
      */
     String getWorldName();
+
+    /**
+     * Get the area that this section covers
+     * @return The area, or null if not defined
+     */
+    SectionArea getArea();
 }

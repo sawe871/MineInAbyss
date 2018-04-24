@@ -1,5 +1,6 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk;
 
+import com.derongan.minecraft.mineinabyss.World.Point;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;

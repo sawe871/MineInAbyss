@@ -25,6 +25,7 @@ public class AbyssWorldManagerImpl implements AbyssWorldManager {
     private static final String SUB_KEY = "sub";
     private static final String SECTION_KEY = "sections";
     private static final String EFFECTS_KEY = "effects";
+    private static final String AREA_KEY = "area";
 
     public AbyssWorldManagerImpl(Configuration config) {
         layers = new ArrayList<>();
@@ -82,6 +83,11 @@ public class AbyssWorldManagerImpl implements AbyssWorldManager {
         Location refTop = parseLocation((List<Integer>) map.get("refTop"), world);
 
         SectionImpl section = new SectionImpl(numSections++, world, layer, refTop, refBottom);
+
+        List<Integer> pts = (List<Integer>) map.getOrDefault(AREA_KEY, null);
+
+        if(pts != null && pts.size() == 4)
+            section.setArea(pts.get(0), pts.get(1), pts.get(2), pts.get(3));
 
         sections.add(section);
 

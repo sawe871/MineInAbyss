@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk;
+package com.derongan.minecraft.mineinabyss.World;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.SerializableAs;

@@ -7,10 +7,8 @@ import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.ChunkRarityS
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.RarityModifiers.*;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSupplier;
-import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
-import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.RarityModifiers.*;
+import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
-import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import com.google.common.collect.Iterators;
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;

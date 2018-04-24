@@ -2,12 +2,13 @@ package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;
+import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.StandardRelicType;
-import com.derongan.minecraft.mineinabyss.World.Layer;
+import com.derongan.minecraft.mineinabyss.World.Section;
 import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -49,7 +50,7 @@ public class DistributionTask extends BukkitRunnable {
 
     private boolean shouldSchedule = true;
 
-    public DistributionTask(AbyssContext context, Layer layer) {
+    public DistributionTask(AbyssContext context, World world) {
         this.context = context;
         this.world = world;
         this.sections = new HashMap<>();
@@ -57,31 +58,25 @@ public class DistributionTask extends BukkitRunnable {
 
         lootableRelicType = new LootableRelicType();
 
-        Path filePath = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(world.getName());
+        AbyssWorldManager manager = context.getWorldManager();
+
+        Path filePath = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve("section_1");
 
         // Cancel if world is not abyss or has no data
-        if (layer == null || !filePath.toFile().exists()) {
+        if (!filePath.toFile().exists()) {
             shouldSchedule = false;
         } else {
-            String[] availSections = filePath.toFile().list((current, name) -> new File(current, name).isDirectory());
+            sections.put("section_1", CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build(
+                    new SpawnAreaHolderCacheLoader(filePath.toString())
+            ));
 
-            if (availSections == null || availSections.length == 0) {
-                shouldSchedule = false;
-            } else {
-                Arrays.stream(availSections).forEach(a -> {
-                    sections.put(a, CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build(
-                            new SpawnAreaHolderCacheLoader(filePath.resolve(a).toString())
-                    ));
+            List<Point> points = Arrays.stream(filePath.toFile().listFiles()).map(f -> {
+                int chunkX = Integer.valueOf(f.getName().split("_")[0]);
+                int chunkZ = Integer.valueOf(f.getName().split("_")[1].split("\\.")[0]);
 
-                    List<Point> points = Arrays.stream(filePath.resolve(a).toFile().listFiles()).map(f->{
-                        int chunkX = Integer.valueOf(f.getName().split("_")[0]);
-                        int chunkZ = Integer.valueOf(f.getName().split("_")[1].split("\\.")[0]);
-
-                        return new Point(chunkX, 0, chunkZ);
-                    }).collect(Collectors.toList());
-                    sectionLootChunks.put(a, points);
-                });
-            }
+                return new Point(chunkX, 0, chunkZ);
+            }).collect(Collectors.toList());
+            sectionLootChunks.put("section_1", points);
         }
 
         context.getLogger().info(String.format("Loot for %s: %b", world.getName(), shouldSchedule));
@@ -134,7 +129,7 @@ public class DistributionTask extends BukkitRunnable {
                 }
             }
 
-            if(sectionLootChunks.get(sectionName).size() == 0)
+            if (sectionLootChunks.get(sectionName).size() == 0)
                 return;
 
             Point chosen = sectionLootChunks.get(sectionName).get(random.nextInt(sectionLootChunks.get(sectionName).size()));
@@ -146,7 +141,7 @@ public class DistributionTask extends BukkitRunnable {
                 e.printStackTrace();
             }
 
-            if (holder.getSpawnAreas().size() > 0) {
+            if (holder.getSpawnAreas() != null && holder.getSpawnAreas().size() > 0) {
                 SpawnArea spawnArea = holder.getSpawnAreas().get(random.nextInt(holder.getSpawnAreas().size()));
 
                 Point point = spawnArea.getRandomPoint();
@@ -166,6 +161,7 @@ public class DistributionTask extends BukkitRunnable {
 
     void spawnLootableRelic(Location location, RelicType relicType) {
         location.getChunk().load();
+        context.getLogger().info("Spawned relic");
         lootableRelicType.spawnLootableRelic(location, relicType, TickUtils.milisecondsToTicks(300000));
     }
 }

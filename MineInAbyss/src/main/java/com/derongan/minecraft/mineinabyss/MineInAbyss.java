@@ -6,12 +6,18 @@ import com.derongan.minecraft.mineinabyss.Configuration.ConfigurationManager;
 import com.derongan.minecraft.mineinabyss.Player.PlayerData;
 import com.derongan.minecraft.mineinabyss.Player.PlayerDataConfigManager;
 import com.derongan.minecraft.mineinabyss.Player.PlayerListener;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.DistributionCommandExecutor;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.DistributionTask;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
 import com.derongan.minecraft.mineinabyss.Relic.Loading.RelicLoader;
 import com.derongan.minecraft.mineinabyss.Relic.RelicCommandExecutor;
 import com.derongan.minecraft.mineinabyss.Relic.RelicDecayTask;
 import com.derongan.minecraft.mineinabyss.Relic.RelicUseListener;
+import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.World.WorldCommandExecutor;
+import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -59,6 +65,16 @@ public final class MineInAbyss extends JavaPlugin {
 
         this.getCommand("curseon").setExecutor(ascensionCommandExecutor);
         this.getCommand("curseoff").setExecutor(ascensionCommandExecutor);
+
+        DistributionCommandExecutor distributionCommandExecutor = new DistributionCommandExecutor(context);
+
+        this.getCommand("preparelootareas").setExecutor(distributionCommandExecutor);
+
+        ConfigurationSerialization.registerClass(SpawnArea.class);
+        ConfigurationSerialization.registerClass(Point.class);
+
+        Runnable distributionTask = new DistributionTask(context, context.getWorldManager().getSectonAt(1).getWorld());
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(1000), TickUtils.milisecondsToTicks(1000));
 
         RelicLoader.loadAllRelics(context);
     }

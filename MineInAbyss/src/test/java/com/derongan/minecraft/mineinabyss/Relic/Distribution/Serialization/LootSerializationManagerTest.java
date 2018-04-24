@@ -2,7 +2,7 @@ package com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization;
 
 
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import org.bukkit.Server;

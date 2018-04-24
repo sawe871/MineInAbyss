@@ -1,7 +1,9 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
-import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.Point;
+import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
+import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;
+import com.derongan.minecraft.mineinabyss.World.Section;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -11,8 +13,6 @@ import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 
 public class DistributionCommandExecutor implements CommandExecutor {
     private AbyssContext context;
@@ -23,7 +23,7 @@ public class DistributionCommandExecutor implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
-        if(!commandSender.isOp()){
+        if (!commandSender.isOp()) {
             commandSender.sendMessage("In your dreams.");
             return true;
         }
@@ -41,40 +41,27 @@ public class DistributionCommandExecutor implements CommandExecutor {
     private boolean prepareLootAreas(String worldName) {
         World world = context.getPlugin().getServer().getWorld(worldName);
 
-        if (world == null)
-            return false;
+        AbyssWorldManager manager = context.getWorldManager();
 
-        // TODO dont iterate
-        List<Map> layers = (List<Map>) context.getConfig().get("layers");
-        Map layer = layers.stream().filter(a -> a.get("name").equals(worldName)).findAny().get();
+        Section tsec = manager.getSectonAt(1);
 
-        if (layer == null) {
-            return false;
+        Point top = tsec.getArea().getFirstCorner();
+        Point bottom = tsec.getArea().getSecondCorner();
+
+        final String outDir = String.format("section_%d", 1);
+        final Path path = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(outDir);
+        try {
+            path.toFile().mkdirs();
+            FileUtils.cleanDirectory(path.toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        List<List<Integer>> sectionAreas = (List<List<Integer>>) layer.get("sectionAreas");
+        Bukkit.broadcastMessage(String.format("Starting generating %s section %d. Bye", worldName, 1));
 
-        for (int i = 0; i < sectionAreas.size(); i++) {
-            List<Integer> area = sectionAreas.get(i);
-            Point top = new Point(area.get(0), 0, area.get(1));
-            Point bottom = new Point(area.get(2), 0, area.get(3));
+        DistributionScanner scanner = new DistributionScanner(world, context);
+        scanner.scan(top, bottom, path, 1);
 
-            final String outDir = String.format(world.getName() + "/section_%d", i);
-            final Path path = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(outDir);
-            try {
-                path.toFile().mkdirs();
-                FileUtils.cleanDirectory(path.toFile());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            Bukkit.broadcastMessage(String.format("Starting generating %s section %d. Bye", worldName, i));
-
-
-            DistributionScanner scanner = new DistributionScanner(world, context);
-            scanner.scan(top, bottom, path, i);
-        }
         return true;
     }
 }

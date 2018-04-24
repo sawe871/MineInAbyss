@@ -13,6 +13,8 @@ public class SectionImpl implements Section {
     private Location referenceTop;
     private Location referenceBottom;
 
+    private SectionArea area;
+
     public SectionImpl(int index, World world, Layer layer, Location referenceTop, Location referenceBottom) {
         this.index = index;
         this.world = world;
@@ -49,5 +51,14 @@ public class SectionImpl implements Section {
     @Override
     public String getWorldName() {
         return world.getName();
+    }
+
+    @Override
+    public SectionArea getArea() {
+        return area;
+    }
+
+    public void setArea(int x1, int y1, int x2, int y2) {
+        this.area = new SectionAreaImpl(x1, y1, x2, y2);
     }
 }
