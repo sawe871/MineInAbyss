@@ -1,5 +1,7 @@
 package com.derongan.minecraft.mineinabyss.World;
 
+import org.bukkit.Location;
+
 import java.util.List;
 
 /**
@@ -38,4 +40,11 @@ public interface AbyssWorldManager {
      * @return
      */
     boolean isAbyssWorld(String worldName);
+
+    /**
+     * Get the section for a location
+     * @param location the location
+     * @return the section or null
+     */
+    Section getSectionAtLocation(Location location);
 }

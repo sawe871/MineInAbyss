@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.Relic;
+package com.derongan.minecraft.mineinabyss.Relic.executors;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Loading.RelicLoader;

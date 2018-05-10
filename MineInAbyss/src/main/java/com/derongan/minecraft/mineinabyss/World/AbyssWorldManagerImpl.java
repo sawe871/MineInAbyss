@@ -128,4 +128,13 @@ public class AbyssWorldManagerImpl implements AbyssWorldManager {
     public boolean isAbyssWorld(String worldName) {
         return abyssWorlds.contains(worldName);
     }
+
+    @Override
+    public Section getSectionAtLocation(Location location) {
+        return sections.stream()
+                .filter(a->a.getWorld()==location.getWorld())
+                .filter(a->a.getArea() != null)
+                .filter(a->a.getArea().containsPoint(location.getBlockX(), location.getBlockZ()))
+                .findFirst().orElse(null);
+    }
 }

@@ -10,11 +10,11 @@ import com.derongan.minecraft.mineinabyss.Relic.Distribution.DistributionCommand
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.DistributionTask;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
 import com.derongan.minecraft.mineinabyss.Relic.Loading.RelicLoader;
-import com.derongan.minecraft.mineinabyss.Relic.RelicCommandExecutor;
+import com.derongan.minecraft.mineinabyss.Relic.executors.RelicCommandExecutor;
 import com.derongan.minecraft.mineinabyss.Relic.RelicDecayTask;
 import com.derongan.minecraft.mineinabyss.Relic.RelicUseListener;
 import com.derongan.minecraft.mineinabyss.World.Point;
-import com.derongan.minecraft.mineinabyss.World.WorldCommandExecutor;
+import com.derongan.minecraft.mineinabyss.World.executors.WorldCommandExecutor;
 import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
