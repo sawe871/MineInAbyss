@@ -2,6 +2,8 @@ name: MineInAbyss
 version: @plugin_version@
 author: Derongan
 main: com.derongan.minecraft.mineinabyss.MineInAbyss
+softdepend: [Multiverse-Core]
+
 prefix: MiB
 description: A mod that adds abyss effects
 
@@ -30,3 +32,6 @@ commands:
   preparelootareas:
     description: Prepare loot areas
     usage: /preparelootareas <worldname>
+  yolo:
+    description: Testing
+    usage: /yolo
