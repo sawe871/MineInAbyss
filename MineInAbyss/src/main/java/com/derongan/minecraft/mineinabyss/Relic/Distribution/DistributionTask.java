@@ -2,14 +2,12 @@ package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
+import com.derongan.minecraft.mineinabyss.Relic.RelicGroundEntity;
 import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
-import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.StandardRelicType;
-import com.derongan.minecraft.mineinabyss.World.Section;
-import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -19,7 +17,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
@@ -31,7 +28,6 @@ import java.util.stream.Collectors;
 
 public class DistributionTask extends BukkitRunnable {
     private AbyssContext context;
-    private LootableRelicType lootableRelicType;
     private World world;
 
     private Map<String, LoadingCache<Point, ChunkSpawnAreaHolder>> sections;
@@ -55,10 +51,6 @@ public class DistributionTask extends BukkitRunnable {
         this.world = world;
         this.sections = new HashMap<>();
         this.sectionLootChunks = new HashMap<>();
-
-        lootableRelicType = new LootableRelicType();
-
-        AbyssWorldManager manager = context.getWorldManager();
 
         Path filePath = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve("section_1");
 
@@ -155,13 +147,12 @@ public class DistributionTask extends BukkitRunnable {
 
     public RelicType randomRelicType() {
         return acceptable.get(random.nextInt(acceptable.size()));
-//        Object[] relicTypes = RelicType.registeredRelics.values().toArray();
-//        return (RelicType) relicTypes[random.nextInt(relicTypes.length)];
     }
 
-    void spawnLootableRelic(Location location, RelicType relicType) {
-        location.getChunk().load();
-        context.getLogger().info("Spawned relic");
-        lootableRelicType.spawnLootableRelic(location, relicType, TickUtils.milisecondsToTicks(300000));
+    private void spawnLootableRelic(Location location, RelicType relicType) {
+        context.getEntityChunkManager().addEntity(
+                location.getChunk(),
+                new RelicGroundEntity(relicType, location.getBlockX(), location.getBlockY(), location.getBlockZ())
+        );
     }
 }

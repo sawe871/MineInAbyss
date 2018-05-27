@@ -5,7 +5,7 @@ import com.derongan.minecraft.mineinabyss.Relic.Behaviour.*;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;
-import net.minecraft.server.v1_12_R1.WorldManager;
+import com.derongan.minecraft.mineinabyss.World.EntityChunkManager;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
@@ -102,10 +102,10 @@ public class RelicUseListener implements Listener {
             return;
         }
 
-        RelicType relicType = ArmorStandBehaviour.registeredRelics.get(e.getRightClicked().getUniqueId());
+        EntityChunkManager chunkManager = context.getEntityChunkManager();
+
         if (e.getRightClicked() instanceof ArmorStand &&
-                !((ArmorStand) e.getRightClicked()).isVisible() &&
-                e.getRightClicked().getCustomName().equals("lootable")) {
+                chunkManager.isEntityRegistered(e.getRightClicked().getUniqueId())) {
             RelicType relicType = new LootableRelicType();
 
             if (relicType.getBehaviour() instanceof ArmorStandBehaviour) {

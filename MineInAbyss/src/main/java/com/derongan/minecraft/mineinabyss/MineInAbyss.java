@@ -15,19 +15,17 @@ import com.derongan.minecraft.mineinabyss.Relic.RelicDecayTask;
 import com.derongan.minecraft.mineinabyss.Relic.RelicGroundEntity;
 import com.derongan.minecraft.mineinabyss.Relic.RelicUseListener;
 import com.derongan.minecraft.mineinabyss.World.EntityChunkListener;
-import com.derongan.minecraft.mineinabyss.World.WorldCommandExecutor;
+import com.derongan.minecraft.mineinabyss.World.EntityChunkManager;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.World.executors.WorldCommandExecutor;
 import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public final class MineInAbyss extends JavaPlugin {
     private final int TICKS_BETWEEN = 5;
@@ -84,7 +82,12 @@ public final class MineInAbyss extends JavaPlugin {
         ConfigurationSerialization.registerClass(Point.class);
 
         Runnable distributionTask = new DistributionTask(context, context.getWorldManager().getSectonAt(1).getWorld());
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(1000), TickUtils.milisecondsToTicks(1000));
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(20000), TickUtils.milisecondsToTicks(20000));
+
+        // Load all chunks
+        getServer().getWorlds().forEach(a->{
+            Arrays.stream(a.getLoadedChunks()).forEach(context.getEntityChunkManager()::loadChunk);
+        });
 
         RelicLoader.loadAllRelics(context);
     }
@@ -92,17 +95,25 @@ public final class MineInAbyss extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        PlayerDataConfigManager manager = new PlayerDataConfigManager(context);
+        PlayerDataConfigManager playerManager = new PlayerDataConfigManager(context);
+        EntityChunkManager chunkManager = context.getEntityChunkManager();
 
         getServer().getOnlinePlayers().forEach(player -> {
             PlayerData data = context.getPlayerDataMap().get(player.getUniqueId());
             try {
-                manager.savePlayerData(data);
+                playerManager.savePlayerData(data);
             } catch (IOException e) {
                 getLogger().warning("Error saving player data for "+player.getUniqueId());
                 e.printStackTrace();
             }
         });
+
+
+        // Clean up all chunks
+        getServer().getWorlds().forEach(a->{
+            Arrays.stream(a.getLoadedChunks()).forEach(chunkManager::unloadChunk);
+        });
+
         getLogger().info("onDisable has been invoked!");
     }
 

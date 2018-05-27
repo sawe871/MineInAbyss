@@ -2,6 +2,7 @@ package com.derongan.minecraft.mineinabyss.Relic.executors;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Loading.RelicLoader;
+import com.derongan.minecraft.mineinabyss.Relic.RelicGroundEntity;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.StandardRelicType;
 import com.derongan.minecraft.mineinabyss.World.ChunkEntity;
@@ -58,8 +59,6 @@ public class RelicCommandExecutor implements CommandExecutor {
                         location.getBlockX(),
                         location.getBlockY(),
                         location.getBlockZ());
-                entity.createEntity(location.getWorld());
-
                 context.getEntityChunkManager().addEntity(location.getChunk(), entity);
             }
         }

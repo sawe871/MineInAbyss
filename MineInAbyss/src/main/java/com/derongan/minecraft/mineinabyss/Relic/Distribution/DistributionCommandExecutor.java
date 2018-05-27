@@ -43,7 +43,7 @@ public class DistributionCommandExecutor implements CommandExecutor {
 
         AbyssWorldManager manager = context.getWorldManager();
 
-        Section tsec = manager.getSectonAt(1);
+        Section tsec = manager.getSectonAt(0);
 
         Point top = tsec.getArea().getFirstCorner();
         Point bottom = tsec.getArea().getSecondCorner();

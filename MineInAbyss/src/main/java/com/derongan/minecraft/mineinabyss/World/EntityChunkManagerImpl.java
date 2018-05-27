@@ -60,7 +60,10 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
 
         chunkInfoMap.get(key).add(chunkEntity);
 
-        chunkEntityMap.put(chunkEntity.getEntity().getUniqueId(), chunkEntity);
+        if(chunk.isLoaded()){
+            chunkEntity.createEntity(chunk.getWorld());
+            chunkEntityMap.put(chunkEntity.getEntity().getUniqueId(), chunkEntity);
+        }
     }
 
     @Override
@@ -69,6 +72,11 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
         chunkInfoMap.get(new ChunkKey(chunk)).remove(e);
         chunkEntityMap.remove(entity.getUniqueId());
         e.destroyEntity();
+    }
+
+    @Override
+    public boolean isEntityRegistered(UUID uuid) {
+        return chunkEntityMap.containsKey(uuid);
     }
 
     private class ChunkKey {
