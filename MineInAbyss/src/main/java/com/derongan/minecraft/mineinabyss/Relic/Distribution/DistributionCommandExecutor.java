@@ -1,5 +1,6 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Scanning.DistributionScanner;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;

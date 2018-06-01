@@ -6,8 +6,9 @@ import org.bukkit.configuration.serialization.SerializableAs;
 import java.util.HashMap;
 import java.util.Map;
 
-
-//TODO what package should this be under?
+/**
+ * A serializable point class.
+ */
 @SerializableAs("point")
 public class Point implements ConfigurationSerializable {
     public int x, y, z;

@@ -1,44 +1,80 @@
 package com.derongan.minecraft.mineinabyss.World;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Entity;
 
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class EntityChunkManagerImpl implements EntityChunkManager {
-    private Map<ChunkKey, Collection<ChunkEntity>> chunkInfoMap;
+    // This map contains entities for loaded chunks
+    private Map<ChunkKey, Map<Point, ChunkEntity>> loadedChunkMap;
+
+    // This map contains chunkentities for chunks that are not yet loaded or have been unloaded.
+    private LoadingCache<ChunkKey, Map<Point, ChunkEntity>> unloadedChunkCache;
+
+    // This map contains a map of actual entity UUIDs to chunkentities.
     private Map<UUID, ChunkEntity> chunkEntityMap;
     private AbyssWorldManager manager;
     private AbyssContext context;
     private WorldDataConfigManager configManager;
 
     public EntityChunkManagerImpl(AbyssContext context) {
-        chunkInfoMap = new HashMap<>(100);
+        loadedChunkMap = new HashMap<>(100);
         chunkEntityMap = new HashMap<>(100);
+
         configManager = new WorldDataConfigManager(context);
 
         this.context = context;
         this.manager = context.getWorldManager();
-    }
 
-    @Override
-    public void loadChunk(Chunk chunk) {
-        Collection<ChunkEntity> chunkEntities = configManager.loadChunkData(chunk);
-        chunkInfoMap.put(new ChunkKey(chunk), chunkEntities);
-
-        chunkEntities.forEach((a) -> {
-            Entity e = a.createEntity(chunk.getWorld());
-            chunkEntityMap.put(e.getUniqueId(), a);
+        //TODO tune cache.
+        unloadedChunkCache = CacheBuilder.newBuilder()
+                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .maximumSize(500)
+                .build(new CacheLoader<ChunkKey, Map<Point, ChunkEntity>>() {
+            @Override
+            public Map<Point, ChunkEntity> load(ChunkKey chunkKey) throws Exception {
+                return configManager.loadChunkData(chunkKey.toChunk());
+            }
         });
     }
 
     @Override
+    public void loadChunk(Chunk chunk) {
+        ChunkKey chunkKey = new ChunkKey(chunk);
+
+        Map<Point, ChunkEntity> chunkEntities = unloadedChunkCache.getIfPresent(chunkKey);
+
+        // If its not in the cache, load it. Otherwise evict and move to loaded map.
+        // Note that getIfPresent does not force loading.
+        if(chunkEntities == null) {
+            chunkEntities = configManager.loadChunkData(chunk);
+            loadedChunkMap.put(chunkKey, chunkEntities);
+        } else {
+            unloadedChunkCache.invalidate(chunkKey);
+        }
+
+        chunkEntities.forEach((point, ce) -> {
+            Entity e = ce.createEntity(chunk.getWorld());
+            chunkEntityMap.put(e.getUniqueId(), ce);
+        });
+
+    }
+
+    @Override
     public void unloadChunk(Chunk chunk) {
-        Collection<ChunkEntity> entities = chunkInfoMap.getOrDefault(new ChunkKey(chunk), Collections.emptyList());
-        chunkInfoMap.remove(new ChunkKey(chunk));
+        ChunkKey chunkKey = new ChunkKey(chunk);
+
+        Map<Point,ChunkEntity> entities = loadedChunkMap.getOrDefault(chunkKey, new HashMap<>());
+        loadedChunkMap.remove(chunkKey);
 
         try {
             configManager.saveChunkData(chunk, entities);
@@ -46,9 +82,12 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
             e.printStackTrace();
         }
 
-        entities.forEach(a->{
-            chunkEntityMap.remove(a.getEntity().getUniqueId());
-            a.destroyEntity();
+        // Move the unloaded chunk to the cache.
+        unloadedChunkCache.put(chunkKey, entities);
+
+        entities.forEach((a,ce)->{
+            chunkEntityMap.remove(ce.getEntity().getUniqueId());
+            ce.destroyEntity();
         });
     }
 
@@ -56,9 +95,9 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
     public void addEntity(Chunk chunk, ChunkEntity chunkEntity) {
         ChunkKey key = new ChunkKey(chunk);
 
-        chunkInfoMap.computeIfAbsent(key, (a) -> new ArrayList<>());
+        loadedChunkMap.computeIfAbsent(key, (a) -> new HashMap<>());
 
-        chunkInfoMap.get(key).add(chunkEntity);
+        loadedChunkMap.get(key).put(new Point(chunkEntity.getX(), chunkEntity.getY(), chunkEntity.getZ()), chunkEntity);
 
         if(chunk.isLoaded()){
             chunkEntity.createEntity(chunk.getWorld());
@@ -69,7 +108,7 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
     @Override
     public void removeEntity(Chunk chunk, Entity entity) {
         ChunkEntity e = chunkEntityMap.get(entity.getUniqueId());
-        chunkInfoMap.get(new ChunkKey(chunk)).remove(e);
+        loadedChunkMap.get(new ChunkKey(chunk)).remove(e);
         chunkEntityMap.remove(entity.getUniqueId());
         e.destroyEntity();
     }
@@ -77,6 +116,21 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
     @Override
     public boolean isEntityRegistered(UUID uuid) {
         return chunkEntityMap.containsKey(uuid);
+    }
+
+    @Override
+    public boolean isEntityAt(Chunk chunk, int x, int y, int z) {
+        ChunkKey chunkKey = new ChunkKey(chunk);
+
+        Map<Point, ChunkEntity> chunkEntityMap;
+
+        if(loadedChunkMap.containsKey(chunkKey)){
+            chunkEntityMap = loadedChunkMap.get(chunkKey);
+        } else {
+            chunkEntityMap = unloadedChunkCache.getUnchecked(chunkKey);
+        }
+
+        return chunkEntityMap.containsKey(new Point(x,y,z));
     }
 
     private class ChunkKey {
@@ -89,6 +143,10 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
             this.z = chunk.getZ();
 
             this.worldName = chunk.getWorld().getName();
+        }
+
+        public Chunk toChunk(){
+            return Bukkit.getWorld(worldName).getChunkAt(x,z);
         }
 
         @Override

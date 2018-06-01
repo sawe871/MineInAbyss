@@ -3,7 +3,6 @@ package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
 import com.derongan.minecraft.mineinabyss.Relic.RelicGroundEntity;
-import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;

@@ -21,7 +21,6 @@ public class AbyssContext {
     private Plugin plugin;
     private Logger logger;
     private Configuration config;
-    private int tickTime;
 
     private AbyssWorldManager worldManager;
     private EntityChunkManager entityChunkManager;

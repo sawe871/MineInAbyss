@@ -7,6 +7,8 @@ import org.bukkit.entity.Entity;
 /**
  * An entity that can be loaded/unloaded out of sync with chunk loading.
  * Implementations are responsible for serializing the entity for saving.
+ *
+ * There may only be one entity per location in a chunk.
  */
 public interface ChunkEntity extends ConfigurationSerializable {
     final String TIME_REMAINING_KEY = "time_remaining";

@@ -4,14 +4,14 @@ import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Configuration.ConfigurationConstants;
 import com.derongan.minecraft.mineinabyss.MineInAbyss;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Functions;
 import org.bukkit.Chunk;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class WorldDataConfigManager {
     private AbyssContext context;
@@ -21,25 +21,34 @@ public class WorldDataConfigManager {
         this.context = context;
     }
 
-    public Collection<ChunkEntity> loadChunkData(Chunk chunk){
+    public Map<Point, ChunkEntity> loadChunkData(Chunk chunk) {
         Path path = getChunkDataPath(chunk);
 
-        if(path.toFile().exists()){
+        if (path.toFile().exists()) {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(path.toFile());
-            return (Collection<ChunkEntity>) config.getList(ENTITIES_KEY);
+
+            return ((Collection<ChunkEntity>) config.getList(ENTITIES_KEY)).stream().collect(
+                    Collectors.toMap(
+                            c -> new Point(c.getX(), c.getY(), c.getZ()),
+                            Functions.identity()
+                    )
+            );
         } else {
-            return new ArrayList<>();
+            return new HashMap<>();
         }
     }
 
-    public void saveChunkData(Chunk chunk, Collection<ChunkEntity> entities) throws IOException {
+    public void saveChunkData(Chunk chunk, Map<Point, ChunkEntity> entities) throws IOException {
         Path path = getChunkDataPath(chunk);
 
         // Recreate directories if missing
         path.toFile().getParentFile().mkdirs();
 
         YamlConfiguration config = new YamlConfiguration();
-        config.set(ENTITIES_KEY, entities);
+
+        //Values is not a normal collection that snake yaml knows how to
+        //serialize, so we convert it to a raw array
+        config.set(ENTITIES_KEY, entities.values().toArray());
 
         config.save(path.toFile());
     }

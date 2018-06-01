@@ -1,4 +1,4 @@
-package com.derongan.minecraft.mineinabyss.Relic.Distribution;
+package com.derongan.minecraft.mineinabyss.Relic.Distribution.Scanning;
 
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkFilters.EnoughRoomFilter;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkFilters.ValidChunkFilter;
@@ -7,6 +7,7 @@ import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.ChunkRarityS
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Rarity.RarityModifiers.*;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSupplier;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
 import com.google.common.collect.Iterators;
