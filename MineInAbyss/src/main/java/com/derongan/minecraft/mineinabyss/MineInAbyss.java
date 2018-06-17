@@ -81,8 +81,8 @@ public final class MineInAbyss extends JavaPlugin {
         ConfigurationSerialization.registerClass(SpawnArea.class);
         ConfigurationSerialization.registerClass(Point.class);
 
-        Runnable distributionTask = new DistributionTask(context, context.getWorldManager().getSectonAt(1).getWorld());
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(20000), TickUtils.milisecondsToTicks(20000));
+        Runnable distributionTask = new DistributionTask(context, context.getWorldManager().getLayerAt(0));
+//        getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(1000), TickUtils.milisecondsToTicks(1000));
 
         // Load all chunks
         getServer().getWorlds().forEach(a->{
@@ -110,9 +110,7 @@ public final class MineInAbyss extends JavaPlugin {
 
 
         // Clean up all chunks
-        getServer().getWorlds().forEach(a->{
-            Arrays.stream(a.getLoadedChunks()).forEach(chunkManager::unloadChunk);
-        });
+        chunkManager.disable();
 
         getLogger().info("onDisable has been invoked!");
     }

@@ -1,19 +1,26 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Scanning.DistributionScanner;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;
 import com.derongan.minecraft.mineinabyss.World.Section;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.List;
 
 public class DistributionCommandExecutor implements CommandExecutor {
     private AbyssContext context;
@@ -31,25 +38,30 @@ public class DistributionCommandExecutor implements CommandExecutor {
         if (args.length < 1)
             return false;
 
-        String worldName = args[0];
+        String layerIndex = args[0];
 
-        if (label.equals("preparelootareas")) {
-            return prepareLootAreas(worldName);
+        if (label.equals("preparelootareas") && StringUtils.isNumeric(layerIndex)) {
+            prepareLootAreas(Integer.valueOf(layerIndex));
+
+            return true;
         }
         return false;
     }
 
-    private boolean prepareLootAreas(String worldName) {
-        World world = context.getPlugin().getServer().getWorld(worldName);
-
+    private void prepareLootAreas(int layerIndex) {
         AbyssWorldManager manager = context.getWorldManager();
 
-        Section tsec = manager.getSectonAt(0);
+        manager.getLayerAt(layerIndex).getSections().forEach(this::prepareLootAreas);
+    }
 
-        Point top = tsec.getArea().getFirstCorner();
-        Point bottom = tsec.getArea().getSecondCorner();
+    private void prepareLootAreas(Section section) {
+        if (section.getArea() == null)
+            return;
 
-        final String outDir = String.format("section_%d", 1);
+        Point top = section.getArea().getFirstCorner();
+        Point bottom = section.getArea().getSecondCorner();
+
+        final String outDir = String.format("section_%d", section.getIndex());
         final Path path = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(outDir);
         try {
             path.toFile().mkdirs();
@@ -58,11 +70,13 @@ public class DistributionCommandExecutor implements CommandExecutor {
             e.printStackTrace();
         }
 
-        Bukkit.broadcastMessage(String.format("Starting generating %s section %d. Bye", worldName, 1));
+        Bukkit.broadcastMessage(String.format("Starting generating %s section %d. Bye", section.getLayer().getName(), section.getIndex()));
 
-        DistributionScanner scanner = new DistributionScanner(world, context);
-        scanner.scan(top, bottom, path, 1);
+        DistributionScanner scanner = new DistributionScanner(section.getWorld(), context);
 
-        return true;
+
+        Iterator<List<ChunkSnapshot>> iterator = scanner.scan(top, bottom, path, section.getIndex());
+
+        LootSerializationManager manager = new LootSerializationManager(path.normalize().toString(), context);
     }
 }

@@ -1,9 +1,7 @@
 package com.derongan.minecraft.mineinabyss.World;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.cache.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Entity;
@@ -36,15 +34,17 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
         this.manager = context.getWorldManager();
 
         //TODO tune cache.
+        // We save to disk once we lose an item from cache
         unloadedChunkCache = CacheBuilder.newBuilder()
                 .expireAfterAccess(10, TimeUnit.MINUTES)
                 .maximumSize(500)
+                .removalListener((RemovalListener<ChunkKey, Map<Point, ChunkEntity>>) notif -> flushToDisk(notif.getKey().toChunk(), notif.getValue()))
                 .build(new CacheLoader<ChunkKey, Map<Point, ChunkEntity>>() {
-            @Override
-            public Map<Point, ChunkEntity> load(ChunkKey chunkKey) throws Exception {
-                return configManager.loadChunkData(chunkKey.toChunk());
-            }
-        });
+                    @Override
+                    public Map<Point, ChunkEntity> load(ChunkKey chunkKey) throws Exception {
+                        return configManager.loadChunkData(chunkKey.toChunk());
+                    }
+                });
     }
 
     @Override
@@ -55,7 +55,7 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
 
         // If its not in the cache, load it. Otherwise evict and move to loaded map.
         // Note that getIfPresent does not force loading.
-        if(chunkEntities == null) {
+        if (chunkEntities == null) {
             chunkEntities = configManager.loadChunkData(chunk);
             loadedChunkMap.put(chunkKey, chunkEntities);
         } else {
@@ -73,19 +73,13 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
     public void unloadChunk(Chunk chunk) {
         ChunkKey chunkKey = new ChunkKey(chunk);
 
-        Map<Point,ChunkEntity> entities = loadedChunkMap.getOrDefault(chunkKey, new HashMap<>());
+        Map<Point, ChunkEntity> entities = loadedChunkMap.getOrDefault(chunkKey, new HashMap<>());
         loadedChunkMap.remove(chunkKey);
-
-        try {
-            configManager.saveChunkData(chunk, entities);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         // Move the unloaded chunk to the cache.
         unloadedChunkCache.put(chunkKey, entities);
 
-        entities.forEach((a,ce)->{
+        entities.forEach((a, ce) -> {
             chunkEntityMap.remove(ce.getEntity().getUniqueId());
             ce.destroyEntity();
         });
@@ -99,7 +93,7 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
 
         loadedChunkMap.get(key).put(new Point(chunkEntity.getX(), chunkEntity.getY(), chunkEntity.getZ()), chunkEntity);
 
-        if(chunk.isLoaded()){
+        if (chunk.isLoaded()) {
             chunkEntity.createEntity(chunk.getWorld());
             chunkEntityMap.put(chunkEntity.getEntity().getUniqueId(), chunkEntity);
         }
@@ -108,7 +102,7 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
     @Override
     public void removeEntity(Chunk chunk, Entity entity) {
         ChunkEntity e = chunkEntityMap.get(entity.getUniqueId());
-        loadedChunkMap.get(new ChunkKey(chunk)).remove(e);
+        loadedChunkMap.get(new ChunkKey(chunk)).remove(new Point(e.getX(),e.getY(), e.getZ()));
         chunkEntityMap.remove(entity.getUniqueId());
         e.destroyEntity();
     }
@@ -124,13 +118,31 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
 
         Map<Point, ChunkEntity> chunkEntityMap;
 
-        if(loadedChunkMap.containsKey(chunkKey)){
+        if (loadedChunkMap.containsKey(chunkKey)) {
             chunkEntityMap = loadedChunkMap.get(chunkKey);
         } else {
             chunkEntityMap = unloadedChunkCache.getUnchecked(chunkKey);
         }
 
-        return chunkEntityMap.containsKey(new Point(x,y,z));
+        return chunkEntityMap.containsKey(new Point(x, y, z));
+    }
+
+    @Override
+    public void disable() {
+        // Flush all from loaded chunks.
+        Bukkit.getServer().getWorlds().forEach(a->{
+            Arrays.stream(a.getLoadedChunks()).forEach(this::unloadChunk);
+        });
+
+        unloadedChunkCache.invalidateAll();
+    }
+
+    private void flushToDisk(Chunk chunk, Map<Point, ChunkEntity> entities) {
+        try {
+            configManager.saveChunkData(chunk, entities);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private class ChunkKey {
@@ -145,8 +157,8 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
             this.worldName = chunk.getWorld().getName();
         }
 
-        public Chunk toChunk(){
-            return Bukkit.getWorld(worldName).getChunkAt(x,z);
+        public Chunk toChunk() {
+            return Bukkit.getWorld(worldName).getChunkAt(x, z);
         }
 
         @Override

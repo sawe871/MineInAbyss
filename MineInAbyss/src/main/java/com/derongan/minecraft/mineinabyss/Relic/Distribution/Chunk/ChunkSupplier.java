@@ -4,8 +4,6 @@ import com.derongan.minecraft.mineinabyss.World.Point;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
 
 import java.util.function.Supplier;
 
@@ -49,11 +47,6 @@ public class ChunkSupplier implements Supplier<ChunkSnapshot> {
         world.loadChunk(currentX, currentZ);
         Chunk chunk = world.getChunkAt(currentX, currentZ);
 
-        for (Entity entity : chunk.getEntities()) {
-            if (entity instanceof ArmorStand && !((ArmorStand) entity).isVisible()) {
-                entity.remove();
-            }
-        }
         ChunkSnapshot snapshot = chunk.getChunkSnapshot();
         chunk.unload(true);
 

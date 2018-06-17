@@ -2,38 +2,45 @@ package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.Relic.RelicGroundEntity;
-import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
+import com.derongan.minecraft.mineinabyss.Relic.RelicGroundEntity;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.StandardRelicType;
+import com.derongan.minecraft.mineinabyss.World.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Server;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+//new dist task
 public class DistributionTask extends BukkitRunnable {
     private AbyssContext context;
-    private World world;
+    private AbyssWorldManager worldManager;
+    private EntityChunkManager chunkManager;
 
-    private Map<String, LoadingCache<Point, ChunkSpawnAreaHolder>> sections;
+    private Layer layer;
 
-    private Map<String, List<Point>> sectionLootChunks;
+    private Random random;
 
-    private Random random = new Random();
+    private LoadingCache<String, ChunkSpawnAreaHolder> cachedSpawnAreas;
+
+    // Map of sections to available spawn files.
+    private List<String> spawnFiles;
+
 
     //#TODO this is temp
     private List<RelicType> acceptable = Arrays.asList(
@@ -43,115 +50,77 @@ public class DistributionTask extends BukkitRunnable {
             StandardRelicType.THOUSAND_MEN_PINS
     );
 
-    private boolean shouldSchedule = true;
-
-    public DistributionTask(AbyssContext context, World world) {
+    public DistributionTask(AbyssContext context, Layer layer) {
         this.context = context;
-        this.world = world;
-        this.sections = new HashMap<>();
-        this.sectionLootChunks = new HashMap<>();
+        this.worldManager = context.getWorldManager();
+        this.chunkManager = context.getEntityChunkManager();
 
-        Path filePath = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve("section_1");
+        this.layer = layer;
 
-        // Cancel if world is not abyss or has no data
-        if (!filePath.toFile().exists()) {
-            shouldSchedule = false;
-        } else {
-            sections.put("section_1", CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build(
-                    new SpawnAreaHolderCacheLoader(filePath.toString())
-            ));
+        this.random = new Random();
 
-            List<Point> points = Arrays.stream(filePath.toFile().listFiles()).map(f -> {
-                int chunkX = Integer.valueOf(f.getName().split("_")[0]);
-                int chunkZ = Integer.valueOf(f.getName().split("_")[1].split("\\.")[0]);
+        this.spawnFiles = layer.getSections()
+                .stream()
+                .flatMap(this::getFileList)
+                .collect(Collectors.toList());
 
-                return new Point(chunkX, 0, chunkZ);
-            }).collect(Collectors.toList());
-            sectionLootChunks.put("section_1", points);
-        }
+        //TODO do we need to fix this outdir stuff?
+        LootSerializationManager lootSerializationManager = new LootSerializationManager("",context);
 
-        context.getLogger().info(String.format("Loot for %s: %b", world.getName(), shouldSchedule));
-    }
+        cachedSpawnAreas = CacheBuilder.newBuilder().build(new CacheLoader<String, ChunkSpawnAreaHolder>() {
+            @Override
+            public ChunkSpawnAreaHolder load(String stringPath) throws Exception {
+                Reader reader;
 
-    public class SpawnAreaHolderCacheLoader extends CacheLoader<Point, ChunkSpawnAreaHolder> {
-        LootSerializationManager manager;
+                String filename = stringPath.split("/")[stringPath.split("/").length-1];
 
-        public SpawnAreaHolderCacheLoader(String path) {
-            this.manager = new LootSerializationManager(path, context);
-        }
+                //TODO THIS IS SUPER HACKY AND BAD
+                int x = Integer.valueOf(filename.split("_")[0]);
+                int y = Integer.valueOf(filename.split("_")[1].split("\\.")[0]);
 
-        @Override
-        public ChunkSpawnAreaHolder load(Point point) throws Exception {
-            Reader reader;
-            try {
-                reader = new FileReader(manager.chunkToPath(point.x, point.z).toFile());
-            } catch (FileNotFoundException e) {
-                return new ChunkSpawnAreaHolder(point.x, point.z, Collections.emptyList());
-            }
-
-            return new ChunkSpawnAreaHolder(point.x, point.z, manager.deserializeChunk(reader));
-        }
-    }
-
-
-    public boolean shouldSchedule() {
-        return shouldSchedule;
-    }
-
-    @Override
-    public void run() {
-        sections.keySet().forEach(sectionName -> {
-            for (Player player : world.getPlayers()) {
-                if (context.getPlayerDataMap().get(player.getUniqueId()).canSeeLootSpawns()) {
-                    int px = player.getLocation().getChunk().getX();
-                    int pz = player.getLocation().getChunk().getZ();
-                    for (int x = -2; x < 3; x++) {
-                        for (int z = -2; z < 3; z++) {
-                            Point key = new Point(x + px, 0, z + pz);
-                            ChunkSpawnAreaHolder holder = null;
-                            try {
-                                holder = sections.get(sectionName).get(key);
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            }
-                            holder.getSpawnAreas().forEach(SpawnArea::displayRegion);
-                        }
-                    }
+                try {
+                    reader = new FileReader(stringPath);
+                } catch (FileNotFoundException e) {
+                    return new ChunkSpawnAreaHolder(x, y, Collections.emptyList());
                 }
-            }
 
-            if (sectionLootChunks.get(sectionName).size() == 0)
-                return;
-
-            Point chosen = sectionLootChunks.get(sectionName).get(random.nextInt(sectionLootChunks.get(sectionName).size()));
-
-            ChunkSpawnAreaHolder holder = null;
-            try {
-                holder = sections.get(sectionName).get(chosen);
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-
-            if (holder.getSpawnAreas() != null && holder.getSpawnAreas().size() > 0) {
-                SpawnArea spawnArea = holder.getSpawnAreas().get(random.nextInt(holder.getSpawnAreas().size()));
-
-                Point point = spawnArea.getRandomPoint();
-
-                Vector vector = new Vector(point.x, point.y, point.z);
-
-                spawnLootableRelic(vector.toLocation(world), randomRelicType());
+                return new ChunkSpawnAreaHolder(x, y, lootSerializationManager.deserializeChunk(reader));
             }
         });
     }
 
-    public RelicType randomRelicType() {
-        return acceptable.get(random.nextInt(acceptable.size()));
+    private Stream<String> getFileList(Section section){
+        Path filePath = context.getPlugin()
+                .getDataFolder()
+                .toPath()
+                .resolve("distribution")
+                .resolve("section_" + (section.getIndex()+1));
+
+        // Check if the path exists
+        if(filePath.toFile().exists()){
+            return Arrays.stream(filePath.toFile().listFiles()).map(File::getPath);
+        } else {
+            return Stream.empty();
+        }
     }
 
-    private void spawnLootableRelic(Location location, RelicType relicType) {
-        context.getEntityChunkManager().addEntity(
-                location.getChunk(),
-                new RelicGroundEntity(relicType, location.getBlockX(), location.getBlockY(), location.getBlockZ())
-        );
+    @Override
+    public void run() {
+        String randomPath = spawnFiles.get(random.nextInt(spawnFiles.size()));
+        try {
+            ChunkSpawnAreaHolder holder = cachedSpawnAreas.get(randomPath);
+            SpawnArea spawnArea = holder.getSpawnAreas().get(random.nextInt(holder.getSpawnAreas().size()));
+
+            //Random spawn point
+            Point point = spawnArea.getRandomPoint();
+
+            Chunk chunk = Bukkit.getWorld(spawnArea.getWorldName()).getChunkAt(holder.getChunkX(), holder.getChunkZ());
+
+            if(!chunkManager.isEntityAt(chunk, point.getX(), point.getY(), point.getZ())){
+                chunkManager.addEntity(chunk, new RelicGroundEntity(acceptable.get(random.nextInt(acceptable.size())), point.getX(), point.getY(), point.getZ()));
+            }
+        } catch (ExecutionException e) {
+            context.getLogger().warning("Problem getting entry for loot cache");
+        }
     }
 }

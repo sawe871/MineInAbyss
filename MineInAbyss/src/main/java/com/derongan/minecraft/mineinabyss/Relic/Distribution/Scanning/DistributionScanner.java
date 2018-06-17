@@ -47,7 +47,7 @@ public class DistributionScanner {
      * @param bottom    Bottommost point
      * @param path    the directory to save to
      */
-    public void scan(Point top, Point bottom, Path path, int section) {
+    public Iterator<List<ChunkSnapshot>> scan(Point top, Point bottom, Path path, int section) {
         ChunkSupplier supplier = new ChunkSupplier(top, bottom, world);
         Stream<ChunkSnapshot> chunks = Stream.generate(supplier).limit(supplier.getNumberOfChunks());
         LootSerializationManager manager = new LootSerializationManager(path.normalize().toString(), context);
@@ -56,7 +56,7 @@ public class DistributionScanner {
 
         Iterator<List<ChunkSnapshot>> iterator = Iterators.partition(filtered.iterator(), 100);
 
-        doNextChunk(iterator, manager, section);
+        return iterator;
     }
 
     // TODO use streams?
@@ -70,7 +70,7 @@ public class DistributionScanner {
 
             scheduler.scheduleSyncDelayedTask(context.getPlugin(), ()->doNextChunk(snapshotIterator, manager, section), 2);
         } else{
-            Bukkit.broadcastMessage(String.format("Finished generating %s section %d", world.getName(), section));
+            Bukkit.broadcastMessage(String.format("Finished generating [^] section %d", section));
         }
     }
 
@@ -93,8 +93,6 @@ public class DistributionScanner {
 
         List<SpawnArea> spawnStream = generateInitialSpawnAreas(snapshot)
                 .sorted((s1, s2) -> (-s1.getRarity() + s2.getRarity())).collect(Collectors.toList());
-
-        int c = 0;
 
         for (SpawnArea spawnArea : spawnStream) {
             List<Point> localVisited = new ArrayList<>();

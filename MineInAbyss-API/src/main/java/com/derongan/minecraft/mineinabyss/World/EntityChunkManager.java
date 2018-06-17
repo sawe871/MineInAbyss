@@ -62,4 +62,9 @@ public interface EntityChunkManager {
      * @return The true if there is an entity, false otherwise.
      */
     boolean isEntityAt(Chunk chunk, int x, int y, int z);
+
+    /**
+     * Unloads all entities
+     */
+    void disable();
 }

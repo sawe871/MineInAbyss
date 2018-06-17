@@ -4,6 +4,8 @@ package com.derongan.minecraft.mineinabyss.World;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.util.Objects;
+
 public class SectionImpl implements Section {
     private int index;
 
@@ -60,5 +62,19 @@ public class SectionImpl implements Section {
 
     public void setArea(int x1, int y1, int x2, int y2) {
         this.area = new SectionAreaImpl(x1, y1, x2, y2);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SectionImpl)) return false;
+        SectionImpl section = (SectionImpl) o;
+        return getIndex() == section.getIndex() &&
+                Objects.equals(getLayer().getName(), section.getLayer().getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getIndex(), getLayer().getName());
     }
 }
