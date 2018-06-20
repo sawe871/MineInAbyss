@@ -1,6 +1,7 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk;
 
 import com.derongan.minecraft.mineinabyss.World.Point;
+import com.derongan.minecraft.mineinabyss.World.SectionArea;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
@@ -18,7 +19,9 @@ public class ChunkSupplier implements Supplier<ChunkSnapshot> {
 
     private World world;
 
-    public ChunkSupplier(Point topRight, Point bottomLeft, World world) {
+    public ChunkSupplier(SectionArea area, World world) {
+        Point topRight = area.getFirstCorner();
+        Point bottomLeft = area.getSecondCorner();
         xhigh = Math.max(topRight.x, bottomLeft.x);
         xlow = Math.min(topRight.x, bottomLeft.x);
         zlow = Math.min(topRight.z, bottomLeft.z);

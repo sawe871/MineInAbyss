@@ -81,15 +81,17 @@ public final class MineInAbyss extends JavaPlugin {
         ConfigurationSerialization.registerClass(SpawnArea.class);
         ConfigurationSerialization.registerClass(Point.class);
 
-        Runnable distributionTask = new DistributionTask(context, context.getWorldManager().getLayerAt(0));
-//        getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(1000), TickUtils.milisecondsToTicks(1000));
-
         // Load all chunks
-        getServer().getWorlds().forEach(a->{
+        getServer().getWorlds().forEach(a -> {
             Arrays.stream(a.getLoadedChunks()).forEach(context.getEntityChunkManager()::loadChunk);
         });
 
         RelicLoader.loadAllRelics(context);
+
+        context.getWorldManager().getLayers().forEach(a -> {
+            Runnable distributionTask = new DistributionTask(context, a);
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(1000), TickUtils.milisecondsToTicks(1000));
+        });
     }
 
     @Override
@@ -103,7 +105,7 @@ public final class MineInAbyss extends JavaPlugin {
             try {
                 playerManager.savePlayerData(data);
             } catch (IOException e) {
-                getLogger().warning("Error saving player data for "+player.getUniqueId());
+                getLogger().warning("Error saving player data for " + player.getUniqueId());
                 e.printStackTrace();
             }
         });

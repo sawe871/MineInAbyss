@@ -5,8 +5,10 @@ import com.derongan.minecraft.mineinabyss.Relic.Behaviour.Behaviours.LootableRel
 import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.World.ChunkEntityImpl;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftArmorStand;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;

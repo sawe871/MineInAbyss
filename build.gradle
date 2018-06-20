@@ -4,7 +4,7 @@ subprojects {
     apply plugin: 'java'
 
     group 'com.derongan.minecraft'
-    version plugin_version+"-SNAPSHOT"
+    version plugin_version + "-SNAPSHOT"
     sourceCompatibility = 1.8
 
     repositories {
@@ -26,6 +26,10 @@ subprojects {
         from(sourceSets.main.resources.srcDirs) {
             filter ReplaceTokens, tokens: [plugin_version: plugin_version]
         }
+    }
+
+    dependencies {
+        dependencies { testCompile "org.mockito:mockito-core:1.+" }
     }
 
 }

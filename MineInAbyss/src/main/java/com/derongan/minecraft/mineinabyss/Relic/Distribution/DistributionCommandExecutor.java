@@ -1,26 +1,28 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
-import com.derongan.minecraft.mineinabyss.Relic.Distribution.Scanning.DistributionScanner;
+import com.derongan.minecraft.mineinabyss.Relic.Distribution.Scanning.DistributionScannerImpl;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
+import com.derongan.minecraft.mineinabyss.World.Layer;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.World.AbyssWorldManager;
 import com.derongan.minecraft.mineinabyss.World.Section;
+import com.google.common.collect.Iterators;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DistributionCommandExecutor implements CommandExecutor {
     private AbyssContext context;
@@ -51,15 +53,22 @@ public class DistributionCommandExecutor implements CommandExecutor {
     private void prepareLootAreas(int layerIndex) {
         AbyssWorldManager manager = context.getWorldManager();
 
-        manager.getLayerAt(layerIndex).getSections().forEach(this::prepareLootAreas);
+        Layer layer = manager.getLayerAt(layerIndex);
+
+        if(layer == null){
+            Bukkit.broadcastMessage(String.format("There is no layer %d", layerIndex));
+            return;
+        }
+
+        layer.getSections().forEach(this::prepareLootAreas);
     }
 
     private void prepareLootAreas(Section section) {
-        if (section.getArea() == null)
+        if (section.getArea() == null) {
+            Bukkit.broadcastMessage(String.format("No area defined for %s section %d. Bye", section.getLayer().getName(), section.getIndex()));
             return;
+        }
 
-        Point top = section.getArea().getFirstCorner();
-        Point bottom = section.getArea().getSecondCorner();
 
         final String outDir = String.format("section_%d", section.getIndex());
         final Path path = context.getPlugin().getDataFolder().toPath().resolve("distribution").resolve(outDir);
@@ -70,13 +79,28 @@ public class DistributionCommandExecutor implements CommandExecutor {
             e.printStackTrace();
         }
 
-        Bukkit.broadcastMessage(String.format("Starting generating %s section %d. Bye", section.getLayer().getName(), section.getIndex()));
+        Bukkit.broadcastMessage(String.format("Starting generating %s section %d. Lag will occur.", section.getLayer().getName(), section.getIndex()));
 
-        DistributionScanner scanner = new DistributionScanner(section.getWorld(), context);
+        DistributionScannerImpl scanner = new DistributionScannerImpl(section.getWorld(), context);
 
 
-        Iterator<List<ChunkSnapshot>> iterator = scanner.scan(top, bottom, path, section.getIndex());
+        Stream<ChunkSpawnAreaHolder> spawnAreaHolderStream = scanner.scan(section);
 
         LootSerializationManager manager = new LootSerializationManager(path.normalize().toString(), context);
+
+        Iterator<List<ChunkSpawnAreaHolder>> iterator = Iterators.partition(spawnAreaHolderStream.iterator(), 100);
+
+        doSaveAreas(iterator, manager, section);
+    }
+
+    private void doSaveAreas(Iterator<List<ChunkSpawnAreaHolder>> holders, LootSerializationManager manager, Section section) {
+        if (holders.hasNext()) {
+            holders.next().forEach(manager::serializeChunkAreas);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(context.getPlugin(), () -> {
+                doSaveAreas(holders, manager, section);
+            }, 100);
+        } else {
+            Bukkit.broadcastMessage(String.format("Finished generating %s section %d. Bye", section.getLayer().getName(), section.getIndex()));
+        }
     }
 }

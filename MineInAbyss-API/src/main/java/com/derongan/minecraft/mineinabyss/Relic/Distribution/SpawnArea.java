@@ -1,7 +1,6 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
 import com.derongan.minecraft.mineinabyss.World.Point;
-import com.derongan.minecraft.mineinabyss.AbyssContext;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -39,8 +38,8 @@ public class SpawnArea implements ConfigurationSerializable{
         this(world, rarity, new ArrayList<>());
     }
 
-    public void updateWorld(AbyssContext context){
-        this.world = context.getPlugin().getServer().getWorld(worldName);
+    public void setWorld(World world){
+        this.world = world;
     }
 
     public int getSize() {
@@ -49,36 +48,6 @@ public class SpawnArea implements ConfigurationSerializable{
 
     public void addPoint(Point point) {
         blocks.add(point);
-    }
-
-    public void displayRegion() {
-        blocks.forEach(
-                a -> {
-                    Vector l = new Vector(a.x + .5, a.y + .5, a.z + .5);
-                    double x = l.getX();
-                    double y = l.getY();
-                    double z = l.getZ();
-                    world.spawnParticle(Particle.REDSTONE, x, y, z, 0, Math.min(rarity / 15.0 + .000001, 1), Math.max(1 - rarity / 15.0 + .000001, 0), 0, 1);
-//                    spawnIt(x,y,z, rarity);
-                }
-        );
-    }
-
-    public void spawnIt(double x, double y, double z, int rarity) {
-        if (rarity == 0)
-            world.spawnParticle(Particle.REDSTONE, x, y, z, 0, 1, .00001, .00001, 1);
-        if (rarity == 1)
-            world.spawnParticle(Particle.REDSTONE, x, y, z, 0, .00001, 1, .00001, 1);
-        if (rarity == 2)
-            world.spawnParticle(Particle.REDSTONE, x, y, z, 0, .00001, .00001, 1, 1);
-        if (rarity == 3)
-            world.spawnParticle(Particle.REDSTONE, x, y, z, 0, 1, 1, .00001, 1);
-        if (rarity == 4)
-            world.spawnParticle(Particle.REDSTONE, x, y, z, 0, 1, .00001, 1, 1);
-        if (rarity == 5)
-            world.spawnParticle(Particle.REDSTONE, x, y, z, 0, .00001, 1, 1, 1);
-        if (rarity == 6)
-            world.spawnParticle(Particle.REDSTONE, x, y, z, 0, 1, 1, 1, 1);
     }
 
 

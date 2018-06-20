@@ -46,6 +46,8 @@ public class LootSerializationManager {
     String serializeChunkAreasToString(ChunkSpawnAreaHolder holder) throws IOException {
         YamlConfiguration config = new YamlConfiguration();
         config.set("spawnareas", holder.getSpawnAreas());
+//        config.set("x", holder.getChunkX());
+//        config.set("z", holder.getChunkZ());
         return config.saveToString();
     }
 
@@ -54,7 +56,8 @@ public class LootSerializationManager {
 
         if(spawnAreas == null)
             return spawnAreas;
-        spawnAreas.forEach(a->a.updateWorld(context));
+
+        spawnAreas.forEach(a->a.setWorld(context.getPlugin().getServer().getWorld(a.getWorldName())));
 
         return spawnAreas;
     }

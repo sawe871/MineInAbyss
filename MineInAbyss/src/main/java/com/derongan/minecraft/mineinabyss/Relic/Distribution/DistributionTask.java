@@ -94,7 +94,7 @@ public class DistributionTask extends BukkitRunnable {
                 .getDataFolder()
                 .toPath()
                 .resolve("distribution")
-                .resolve("section_" + (section.getIndex()+1));
+                .resolve("section_" + (section.getIndex()));
 
         // Check if the path exists
         if(filePath.toFile().exists()){
@@ -106,21 +106,23 @@ public class DistributionTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        String randomPath = spawnFiles.get(random.nextInt(spawnFiles.size()));
-        try {
-            ChunkSpawnAreaHolder holder = cachedSpawnAreas.get(randomPath);
-            SpawnArea spawnArea = holder.getSpawnAreas().get(random.nextInt(holder.getSpawnAreas().size()));
+        if(spawnFiles.size() > 0) {
+            String randomPath = spawnFiles.get(random.nextInt(spawnFiles.size()));
+            try {
+                ChunkSpawnAreaHolder holder = cachedSpawnAreas.get(randomPath);
+                SpawnArea spawnArea = holder.getSpawnAreas().get(random.nextInt(holder.getSpawnAreas().size()));
 
-            //Random spawn point
-            Point point = spawnArea.getRandomPoint();
+                //Random spawn point
+                Point point = spawnArea.getRandomPoint();
 
-            Chunk chunk = Bukkit.getWorld(spawnArea.getWorldName()).getChunkAt(holder.getChunkX(), holder.getChunkZ());
+                Chunk chunk = Bukkit.getWorld(spawnArea.getWorldName()).getChunkAt(holder.getChunkX(), holder.getChunkZ());
 
-            if(!chunkManager.isEntityAt(chunk, point.getX(), point.getY(), point.getZ())){
-                chunkManager.addEntity(chunk, new RelicGroundEntity(acceptable.get(random.nextInt(acceptable.size())), point.getX(), point.getY(), point.getZ()));
+                if (!chunkManager.isEntityAt(chunk, point.getX(), point.getY(), point.getZ())) {
+                    chunkManager.addEntity(chunk, new RelicGroundEntity(acceptable.get(random.nextInt(acceptable.size())), point.getX(), point.getY(), point.getZ()));
+                }
+            } catch (ExecutionException e) {
+                context.getLogger().warning("Problem getting entry for loot cache");
             }
-        } catch (ExecutionException e) {
-            context.getLogger().warning("Problem getting entry for loot cache");
         }
     }
 }

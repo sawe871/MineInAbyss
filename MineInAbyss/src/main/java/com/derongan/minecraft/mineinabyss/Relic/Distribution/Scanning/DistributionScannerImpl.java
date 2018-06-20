@@ -10,6 +10,7 @@ import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSupplier
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.SpawnArea;
 import com.derongan.minecraft.mineinabyss.World.Point;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
+import com.derongan.minecraft.mineinabyss.World.Section;
 import com.google.common.collect.Iterators;
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class DistributionScanner {
+public class DistributionScannerImpl implements DistributionScanner {
     private World world;
     private AbyssContext context;
 
@@ -34,55 +35,34 @@ public class DistributionScanner {
             new RuinsRarityModifier()
     );
 
-    public DistributionScanner(World world, AbyssContext context) {
+    public DistributionScannerImpl(World world, AbyssContext context) {
         this.world = world;
         this.context = context;
     }
 
-    /**
-     * Generate config file for each chunk containing the list of spawn points in a chunk.
-     * Do nothing if yaml already exists.
-     *
-     * @param top    Topmost point
-     * @param bottom    Bottommost point
-     * @param path    the directory to save to
-     */
-    public Iterator<List<ChunkSnapshot>> scan(Point top, Point bottom, Path path, int section) {
-        ChunkSupplier supplier = new ChunkSupplier(top, bottom, world);
+    @Override
+    public Stream<ChunkSpawnAreaHolder> scan(Section section) {
+        if (section.getArea() == null) {
+            context.getLogger().warning(String.format("Section %s does not have a defined area", section.getIndex()));
+            return Stream.empty();
+        }
+
+        ChunkSupplier supplier = new ChunkSupplier(section.getArea(), world);
         Stream<ChunkSnapshot> chunks = Stream.generate(supplier).limit(supplier.getNumberOfChunks());
-        LootSerializationManager manager = new LootSerializationManager(path.normalize().toString(), context);
 
         Stream<ChunkSnapshot> filtered = doFilterChunks(chunks);
 
-        Iterator<List<ChunkSnapshot>> iterator = Iterators.partition(filtered.iterator(), 100);
-
-        return iterator;
+        return filtered.map(this::createSpawnAreaHolders);
     }
 
-    // TODO use streams?
-    private void doNextChunk(Iterator<List<ChunkSnapshot>> snapshotIterator, LootSerializationManager manager, int section){
-        BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
-
-        if(snapshotIterator.hasNext()) {
-            List<ChunkSnapshot> chunkSnapshots = snapshotIterator.next();
-
-            chunkSnapshots.forEach(a->doSerialize(a, manager));
-
-            scheduler.scheduleSyncDelayedTask(context.getPlugin(), ()->doNextChunk(snapshotIterator, manager, section), 2);
-        } else{
-            Bukkit.broadcastMessage(String.format("Finished generating [^] section %d", section));
-        }
-    }
-
-    private void doSerialize(ChunkSnapshot a, LootSerializationManager manager){
-            int chunkX = a.getX();
-            int chunkZ = a.getZ();
+    private ChunkSpawnAreaHolder createSpawnAreaHolders(ChunkSnapshot a) {
+        int chunkX = a.getX();
+        int chunkZ = a.getZ();
 
 
-            List<SpawnArea> internal = createSpawnAreas(doFindSpawnForChunk(a));
+        List<SpawnArea> internal = createSpawnAreas(createRaritySnapshot(a));
 
-            ChunkSpawnAreaHolder holder = new ChunkSpawnAreaHolder(chunkX, chunkZ, internal);
-            manager.serializeChunkAreas(holder);
+        return new ChunkSpawnAreaHolder(chunkX, chunkZ, internal);
     }
 
     private List<SpawnArea> createSpawnAreas(ChunkRaritySnapshot snapshot) {
@@ -155,9 +135,6 @@ public class DistributionScanner {
 
                 visited.addAll(localVisited);
             }
-
-//            c = (c + 1) % 7;
-//            c = (c + 1) % 15;
         }
 
         return spawnAreas;
@@ -200,7 +177,7 @@ public class DistributionScanner {
     }
 
 
-    private ChunkRaritySnapshot doFindSpawnForChunk(ChunkSnapshot snapshot) {
+    private ChunkRaritySnapshot createRaritySnapshot(ChunkSnapshot snapshot) {
         return new ChunkRaritySnapshot(snapshot, snapshot.getX(), snapshot.getZ(), this::getRarity);
     }
 
