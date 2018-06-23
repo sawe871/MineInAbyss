@@ -1,14 +1,11 @@
 package com.derongan.minecraft.mineinabyss.Relic;
 
-import com.derongan.minecraft.mineinabyss.Relic.Behaviour.ArmorStandBehaviour;
 import com.derongan.minecraft.mineinabyss.Relic.Behaviour.Behaviours.LootableRelicBehaviour;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.LootableRelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.World.ChunkEntityImpl;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftArmorStand;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -50,8 +47,8 @@ public class RelicGroundEntity extends ChunkEntityImpl {
         this.rarity = rarity;
     }
 
-    public RelicGroundEntity(RelicType relicType, int x, int y, int z) {
-        super(-1, x, y, z);
+    public RelicGroundEntity(RelicType relicType, int x, int y, int z, long duration) {
+        super(duration, x, y, z);
 
         this.name = relicType.getName();
         this.lore = relicType.getLore().stream().collect(Collectors.joining("\n"));
@@ -62,7 +59,7 @@ public class RelicGroundEntity extends ChunkEntityImpl {
 
     //Deserialization constructor
     public RelicGroundEntity(Map<String, Object> serializedMap) {
-        super(((Number) serializedMap.get(TIME_REMAINING_KEY)).longValue(),
+        super(((Number) serializedMap.get(EXPIRATION_KEY)).longValue(),
                 ((Number) serializedMap.get(X_KEY)).intValue(),
                 ((Number) serializedMap.get(Y_KEY)).intValue(),
                 ((Number) serializedMap.get(Z_KEY)).intValue());
@@ -78,8 +75,7 @@ public class RelicGroundEntity extends ChunkEntityImpl {
     public Map<String, Object> serialize() {
         Map<String, Object> serializedMap = new HashMap<>();
 
-        serializedMap.put(TIME_REMAINING_KEY, getTimeRemaining());
-        serializedMap.put(TIME_SERIALIZED_KEY, getCurrentTime());
+        serializedMap.put(EXPIRATION_KEY, getExpiration());
 
         serializedMap.put(NAME_KEY, name);
         serializedMap.put(LORE_KEY, lore);

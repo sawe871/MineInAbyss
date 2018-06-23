@@ -32,6 +32,12 @@ commands:
   preparelootareas:
     description: Prepare loot areas
     usage: /preparelootareas <worldname>
-  yolo:
+  testspawn:
     description: Testing
-    usage: /yolo
+    usage: /testspawn time
+  showloot:
+    description: Show loot spawns
+    usage: /showloot
+  hideloot:
+    description: Hide loot spawns
+    usage: /hideloot

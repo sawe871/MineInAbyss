@@ -1,5 +1,6 @@
 package com.derongan.minecraft.mineinabyss.Relic.Distribution;
 
+import com.derongan.minecraft.mineinabyss.Player.PlayerData;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Chunk.ChunkSpawnAreaHolder;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Scanning.DistributionScannerImpl;
 import com.derongan.minecraft.mineinabyss.Relic.Distribution.Serialization.LootSerializationManager;
@@ -16,6 +17,7 @@ import org.bukkit.ChunkSnapshot;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -37,16 +39,39 @@ public class DistributionCommandExecutor implements CommandExecutor {
             commandSender.sendMessage("In your dreams.");
             return true;
         }
-        if (args.length < 1)
-            return false;
 
-        String layerIndex = args[0];
 
-        if (label.equals("preparelootareas") && StringUtils.isNumeric(layerIndex)) {
-            prepareLootAreas(Integer.valueOf(layerIndex));
+        if (label.equals("preparelootareas")) {
 
-            return true;
+            if (args.length < 1)
+                return false;
+
+            String layerIndex = args[0];
+
+            if (StringUtils.isNumeric(layerIndex)) {
+                prepareLootAreas(Integer.valueOf(layerIndex));
+                return true;
+            }
         }
+
+        if (label.equals("showloot")) {
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                context.getPlayerDataMap().get(player.getUniqueId()).setCanSeeLootSpawns(true);
+                player.sendMessage("Loot spawns now shown");
+                return true;
+            }
+        }
+
+        if (label.equals("hideloot")) {
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                context.getPlayerDataMap().get(player.getUniqueId()).setCanSeeLootSpawns(false);
+                player.sendMessage("Loot spawns now hidden");
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -55,7 +80,7 @@ public class DistributionCommandExecutor implements CommandExecutor {
 
         Layer layer = manager.getLayerAt(layerIndex);
 
-        if(layer == null){
+        if (layer == null) {
             Bukkit.broadcastMessage(String.format("There is no layer %d", layerIndex));
             return;
         }

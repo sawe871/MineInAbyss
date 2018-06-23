@@ -6,12 +6,15 @@ import com.derongan.minecraft.mineinabyss.Relic.RelicGroundEntity;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.RelicType;
 import com.derongan.minecraft.mineinabyss.Relic.Relics.StandardRelicType;
 import com.derongan.minecraft.mineinabyss.World.ChunkEntity;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class RelicCommandExecutor implements CommandExecutor {
@@ -52,13 +55,19 @@ public class RelicCommandExecutor implements CommandExecutor {
                 return true;
             }
 
-            if(label.equals("yolo")){
+            if(label.equals("testspawn") && player.isOp()){
                 Location location = player.getLocation();
+
+                int seconds = 10;
+                if(args.length != 0 && StringUtils.isNumeric(args[0]))
+                    seconds = Double.valueOf(args[0]).intValue();
+
                 RelicType blaze = StandardRelicType.BLAZE_REAP;
                 ChunkEntity entity = new RelicGroundEntity(blaze,
                         location.getBlockX(),
                         location.getBlockY(),
-                        location.getBlockZ());
+                        location.getBlockZ(),
+                        TimeUnit.SECONDS.toMillis(seconds));
                 context.getEntityChunkManager().addEntity(location.getChunk(), entity);
             }
         }

@@ -7,11 +7,13 @@ import java.util.UUID;
 
 /**
  * Manages special entities on chunks. Special entities are those that we want to be able
- * to spawn/despawn while a chunk is not loaded
+ * to spawn/despawn while a chunk is not loaded. This manager is responsible for removing expired
+ * entities on chunk load, as well as periodically.
  */
 public interface EntityChunkManager {
     /**
-     * Loads a chunks entities
+     * Loads a chunks entities. If the entities are expired
+     * removes them.
      *
      * @param chunk The chunk to load
      */

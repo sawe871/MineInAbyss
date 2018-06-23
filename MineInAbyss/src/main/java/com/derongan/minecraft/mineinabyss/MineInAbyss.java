@@ -26,6 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 public final class MineInAbyss extends JavaPlugin {
     private final int TICKS_BETWEEN = 5;
@@ -60,7 +61,7 @@ public final class MineInAbyss extends JavaPlugin {
         this.getCommand("relic").setExecutor(relicCommandExecutor);
         this.getCommand("relicreload").setExecutor(relicCommandExecutor);
         this.getCommand("relics").setExecutor(relicCommandExecutor);
-        this.getCommand("yolo").setExecutor(relicCommandExecutor);
+        this.getCommand("testspawn").setExecutor(relicCommandExecutor);
 
         WorldCommandExecutor worldCommandExecutor = new WorldCommandExecutor(context);
 
@@ -77,6 +78,8 @@ public final class MineInAbyss extends JavaPlugin {
         DistributionCommandExecutor distributionCommandExecutor = new DistributionCommandExecutor(context);
 
         this.getCommand("preparelootareas").setExecutor(distributionCommandExecutor);
+        this.getCommand("showloot").setExecutor(distributionCommandExecutor);
+        this.getCommand("hideloot").setExecutor(distributionCommandExecutor);
 
         ConfigurationSerialization.registerClass(SpawnArea.class);
         ConfigurationSerialization.registerClass(Point.class);
@@ -90,7 +93,7 @@ public final class MineInAbyss extends JavaPlugin {
 
         context.getWorldManager().getLayers().forEach(a -> {
             Runnable distributionTask = new DistributionTask(context, a);
-            getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, TickUtils.milisecondsToTicks(1000), TickUtils.milisecondsToTicks(1000));
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, distributionTask, 0, TickUtils.milisecondsToTicks(TimeUnit.MINUTES.toMillis(5)));
         });
     }
 

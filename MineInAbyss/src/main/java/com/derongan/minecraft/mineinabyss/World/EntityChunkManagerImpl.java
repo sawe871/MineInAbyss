@@ -1,17 +1,22 @@
 package com.derongan.minecraft.mineinabyss.World;
 
 import com.derongan.minecraft.mineinabyss.AbyssContext;
+import com.derongan.minecraft.mineinabyss.MineInAbyss;
+import com.derongan.minecraft.mineinabyss.util.TickUtils;
 import com.google.common.cache.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.craftbukkit.v1_12_R1.CraftChunk;
 import org.bukkit.entity.Entity;
 
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class EntityChunkManagerImpl implements EntityChunkManager {
+    private static final long DELETE_DELAY = TickUtils.milisecondsToTicks(TimeUnit.SECONDS.toMillis(5));
     // This map contains entities for loaded chunks
     private Map<ChunkKey, Map<Point, ChunkEntity>> loadedChunkMap;
 
@@ -45,6 +50,15 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
                         return configManager.loadChunkData(chunkKey.toChunk());
                     }
                 });
+
+
+        //Initialize removal task
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(
+                MineInAbyss.getInstance(),
+                new ExpiredEntitiesRemover(),
+                0L,
+                DELETE_DELAY
+        );
     }
 
     @Override
@@ -57,10 +71,14 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
         // Note that getIfPresent does not force loading.
         if (chunkEntities == null) {
             chunkEntities = configManager.loadChunkData(chunk);
-            loadedChunkMap.put(chunkKey, chunkEntities);
         } else {
             unloadedChunkCache.invalidate(chunkKey);
         }
+
+        loadedChunkMap.put(chunkKey, chunkEntities);
+
+        // Remove all expired entities
+        chunkEntities.values().removeIf(ce -> ce.getExpiration() < ce.getCurrentTime());
 
         chunkEntities.forEach((point, ce) -> {
             Entity e = ce.createEntity(chunk.getWorld());
@@ -130,7 +148,7 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
     @Override
     public void disable() {
         // Flush all from loaded chunks.
-        Bukkit.getServer().getWorlds().forEach(a->{
+        Bukkit.getServer().getWorlds().forEach(a -> {
             Arrays.stream(a.getLoadedChunks()).forEach(this::unloadChunk);
         });
 
@@ -142,6 +160,17 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
             configManager.saveChunkData(chunk, entities);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private class ExpiredEntitiesRemover implements Runnable {
+        @Override
+        public void run() {
+            loadedChunkMap.forEach((ck, ents) -> {
+                Collection<ChunkEntity> badEnts = ents.values().stream().filter(ce -> ce.getExpiration() < ce.getCurrentTime()).collect(Collectors.toList());
+                Chunk chunk = ck.toChunk();
+                badEnts.forEach(a -> removeEntity(chunk, a.getEntity()));
+            });
         }
     }
 
@@ -158,7 +187,7 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
         }
 
         public Chunk toChunk() {
-            return Bukkit.getWorld(worldName).getChunkAt(x, z);
+            return new NonLoadingChunk(x, z, Bukkit.getWorld(worldName));
         }
 
         @Override
@@ -175,6 +204,11 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
         public int hashCode() {
 
             return Objects.hash(x, z, worldName);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Chunk at %s,%s", x, z);
         }
     }
 }

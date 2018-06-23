@@ -11,18 +11,20 @@ import org.bukkit.entity.Entity;
  * There may only be one entity per location in a chunk.
  */
 public interface ChunkEntity extends ConfigurationSerializable {
-    final String TIME_REMAINING_KEY = "time_remaining";
-    final String TIME_SERIALIZED_KEY = "time_serialized";
+    final String EXPIRATION_KEY = "expiration";
     final String X_KEY = "x";
     final String Y_KEY = "y";
     final String Z_KEY = "z";
 
+    final long NEVER = Long.MAX_VALUE;
+
     /**
-     * @return amount of time in seconds remaining before this entity despawns. -1 if the entity is immortal.
+     * @return amount of time in seconds remaining before this entity despawns.
      */
-    long getTimeRemaining();
+    long getExpiration();
 
 
+    //TODO doesn't belong here
     /**
      * @return the system time in ms when this method was called
      */

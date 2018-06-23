@@ -14,6 +14,7 @@ public class PlayerDataImpl implements PlayerData {
 
     private boolean affectedByCurse;
     private boolean anchored;
+    private boolean canSeeLootSpawns;
 
     private double distanceAscended;
 
@@ -93,6 +94,11 @@ public class PlayerDataImpl implements PlayerData {
 
     @Override
     public boolean canSeeLootSpawns() {
-        return true;
+        return canSeeLootSpawns;
+    }
+
+    @Override
+    public void setCanSeeLootSpawns(boolean canSeeLootSpawns) {
+        this.canSeeLootSpawns = canSeeLootSpawns;
     }
 }

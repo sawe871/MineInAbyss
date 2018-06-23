@@ -92,4 +92,9 @@ public interface PlayerData {
      * Get whether the player can see loot areas or not
      */
     boolean canSeeLootSpawns();
+
+    /**
+     * Set whether the player can see loot areas or not
+     */
+    void setCanSeeLootSpawns(boolean canSeeLootSpawns);
 }

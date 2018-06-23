@@ -5,22 +5,22 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 
 public abstract class ChunkEntityImpl implements ChunkEntity {
-    private long timeRemaining;
+    private long expiration;
     private Entity theEntity;
     private int x;
     private int z;
     private int y;
 
-    public ChunkEntityImpl(long timeRemaining, int x, int y, int z) {
-        this.timeRemaining = timeRemaining;
+    public ChunkEntityImpl(long duration, int x, int y, int z) {
+        this.expiration = getCurrentTime() + duration;
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
     @Override
-    public long getTimeRemaining(){
-        return timeRemaining;
+    public long getExpiration(){
+        return expiration;
     }
 
     @Override
