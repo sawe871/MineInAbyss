@@ -75,7 +75,7 @@ public class DistributionTask extends BukkitRunnable {
             public ChunkSpawnAreaHolder load(String stringPath) throws Exception {
                 Reader reader;
 
-                String filename = stringPath.split("/")[stringPath.split("/").length - 1];
+                String filename = stringPath.split(File.separator)[stringPath.split(File.separator).length - 1];
 
                 //TODO THIS IS SUPER HACKY AND BAD
                 int x = Integer.valueOf(filename.split("_")[0]);
