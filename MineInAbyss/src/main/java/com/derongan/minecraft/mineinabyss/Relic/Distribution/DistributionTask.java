@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,7 +76,9 @@ public class DistributionTask extends BukkitRunnable {
             public ChunkSpawnAreaHolder load(String stringPath) throws Exception {
                 Reader reader;
 
-                String filename = stringPath.split(File.separator)[stringPath.split(File.separator).length - 1];
+                String separator = Pattern.quote(File.separator);
+
+                String filename = stringPath.split(separator)[stringPath.split(separator).length - 1];
 
                 //TODO THIS IS SUPER HACKY AND BAD
                 int x = Integer.valueOf(filename.split("_")[0]);
