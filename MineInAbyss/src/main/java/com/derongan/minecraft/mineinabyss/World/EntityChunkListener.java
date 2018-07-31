@@ -15,12 +15,12 @@ public class EntityChunkListener implements Listener {
         this.context = context;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onChunkLoad(ChunkLoadEvent event) {
         manager.loadChunk(event.getChunk());
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onChunkUnload(ChunkUnloadEvent event) {
         manager.unloadChunk(event.getChunk());
     }

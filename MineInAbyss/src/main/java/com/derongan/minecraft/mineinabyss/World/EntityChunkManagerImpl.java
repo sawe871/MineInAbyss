@@ -170,6 +170,8 @@ public class EntityChunkManagerImpl implements EntityChunkManager {
                 Collection<ChunkEntity> badEnts = ents.values().stream().filter(ce -> ce.getExpiration() < ce.getCurrentTime()).collect(Collectors.toList());
                 Chunk chunk = ck.toChunk();
                 badEnts.forEach(a -> removeEntity(chunk, a.getEntity()));
+                //FIXME this isnt the cleanest maybe
+                ents.values().removeIf(a->a.getEntity() == null);
             });
         }
     }
