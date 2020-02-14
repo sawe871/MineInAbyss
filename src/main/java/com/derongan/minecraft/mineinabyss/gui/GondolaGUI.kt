@@ -4,6 +4,7 @@ import com.derongan.minecraft.guiy.gui.*
 import com.derongan.minecraft.guiy.gui.layouts.HistoryGuiHolder
 import com.derongan.minecraft.mineinabyss.MineInAbyss
 import com.derongan.minecraft.mineinabyss.getPlayerData
+import com.mineinabyss.idofront.messaging.translateColors
 import net.md_5.bungee.api.ChatColor
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -13,7 +14,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.util.*
 
-class GondolaGUI(player: Player, plugin: MineInAbyss) : HistoryGuiHolder(6, "Choose Spawn Location", plugin) {
+class GondolaGUI(val player: Player, plugin: MineInAbyss) : HistoryGuiHolder(6, "Choose Spawn Location", plugin) {
     private val context = MineInAbyss.getContext()
 
     private fun buildMain(): Layout? {
@@ -37,16 +38,15 @@ class GondolaGUI(player: Player, plugin: MineInAbyss) : HistoryGuiHolder(6, "Cho
         val balance = MineInAbyss.getEcon().getBalance(player)
 
         return if (balance >= cost) {
-            itemMeta.lore = listOf("${ChatColor.GOLD}Cost: $$cost", "${ChatColor.WHITE}You have: ${ChatColor.GOLD}$balance")
+            itemMeta.lore = listOf("${ChatColor.RESET}Cost: ${ChatColor.GOLD}$$cost", "${ChatColor.WHITE}You have: ${ChatColor.GOLD}$$balance")
             displayItem.itemMeta = itemMeta
 
-            val button = ClickableElement(Cell.forItemStack(displayItem))
-            button.setClickAction {
+            val button = ClickableElement(Cell.forItemStack(displayItem)) {
                 val layer = MineInAbyss.getContext().getLayerForLocation(loc)
                 val playerData = getPlayerData(player)
 
                 player.teleport(loc)
-                player.sendTitle(layer.name, layer.sub, 50, 10, 20)
+                player.sendTitle((layer?.name) ?: "Outside the abyss", (layer?.sub) ?: "A land of mystery", 50, 10, 20)
 
                 MineInAbyss.getEcon().withdrawPlayer(player, cost)
 
@@ -54,14 +54,14 @@ class GondolaGUI(player: Player, plugin: MineInAbyss) : HistoryGuiHolder(6, "Cho
                 playerData.expOnDescent = playerData.exp
                 playerData.isIngame = true
                 Bukkit.getScheduler().scheduleSyncDelayedTask(MineInAbyss.getInstance(), {
-                    player.sendTitle("", String.format("%s%sLet the journey begin", ChatColor.GRAY, ChatColor.ITALIC), 30, 30, 20)
+                    player.sendTitle("", "${ChatColor.GRAY}${ChatColor.ITALIC}Let the journey begin", 30, 30, 20)
                 }, 80)
             }
             button
         } else {
             displayItem.type = Material.BARRIER
-            itemMeta.setDisplayName(ChatColor.STRIKETHROUGH.toString() + itemMeta.displayName)
-            itemMeta.lore = listOf("${ChatColor.RED}Cannot Afford: ${ChatColor.GOLD}$$cost", "${ChatColor.RED}You have: ${ChatColor.GOLD}$balance")
+            itemMeta.setDisplayName("itemMeta.displayName".translateColors())
+            itemMeta.lore = listOf("${ChatColor.RED}Cannot Afford: ${ChatColor.GOLD}$$cost", "${ChatColor.RED}You have: ${ChatColor.GOLD}$$balance")
             displayItem.itemMeta = itemMeta
             Cell.forItemStack(displayItem)
         }
@@ -75,7 +75,6 @@ class GondolaGUI(player: Player, plugin: MineInAbyss) : HistoryGuiHolder(6, "Cho
     }
 
     init {
-        this.player = player
         setElement(buildMain())
     }
 }

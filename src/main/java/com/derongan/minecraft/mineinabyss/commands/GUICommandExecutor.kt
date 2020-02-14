@@ -1,13 +1,14 @@
 package com.derongan.minecraft.mineinabyss.commands
 
 import com.derongan.minecraft.mineinabyss.AbyssContext
-import com.derongan.minecraft.mineinabyss.gui.GondolaGUI
-import com.derongan.minecraft.mineinabyss.gui.StatsGUI
 import com.derongan.minecraft.mineinabyss.MineInAbyss
 import com.derongan.minecraft.mineinabyss.Permissions
 import com.derongan.minecraft.mineinabyss.getPlayerData
-import com.derongan.minecraft.mineinabyss.player.PlayerData
-import org.bukkit.ChatColor
+import com.derongan.minecraft.mineinabyss.gui.GondolaGUI
+import com.derongan.minecraft.mineinabyss.gui.StatsGUI
+import com.mineinabyss.idofront.messaging.error
+import com.mineinabyss.idofront.messaging.info
+import com.mineinabyss.idofront.messaging.success
 import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -20,52 +21,45 @@ import java.util.*
 
 class GUICommandExecutor(private val context: AbyssContext) : CommandExecutor {
     private val leaveConfirm = ArrayList<UUID>()
-    private val errorColor = ChatColor.RED
-    private val successColor = ChatColor.GREEN
 
 
     //TODO check out https://www.spigotmc.org/resources/1-13-commandapi.62353/
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        fun String.permitted(vararg labels: String) = sender.hasPermission(this) && labels.contains(label)
-
-        fun sendError(message: String) = sender.sendMessage("$errorColor$message")
-        fun sendSuccess(message: String) = sender.sendMessage("$successColor$message")
-        fun sendInfo(message: String) = sender.sendMessage(message)
+        fun String.permitted(vararg labels: String) = sender.hasPermission(this) && labels.contains(command.label)
 
         if (sender !is Player) {
-            sendError("Only players can run this command!")
+            sender.error("Only players can run this command!")
             return false
         }
 
         val playerData = getPlayerData(sender)
 
-        if (Permissions.STATS.permitted("stats")) {
+        if (Permissions.STATS.permitted(CommandLabels.STATS)) {
             StatsGUI(sender, JavaPlugin.getPlugin(MineInAbyss::class.java)).show(sender)
             return true
-        } else if (Permissions.START_DESCENT.permitted("start")) {
+        } else if (Permissions.START_DESCENT.permitted(CommandLabels.START)) {
             if (playerData.isIngame) {
-                sender.sendMessage(ChatColor.RED.toString() + "You are already ingame!\nYou can leave using /leave")
+                sender.error("You are already ingame!\nYou can leave using /stopdescent")
                 return true
             }
             GondolaGUI(sender, JavaPlugin.getPlugin(MineInAbyss::class.java)).show(sender)
             return true
 
 
-        } else if (Permissions.STOP_DESCENT.permitted("leave")) {
+        } else if (Permissions.STOP_DESCENT.permitted(CommandLabels.STOP_DESCENT)) {
             if (!playerData.isIngame) {
-                sender.sendMessage(ChatColor.RED.toString() + "You are not currently ingame!\nStart by using /start")
+                sender.error("You are not currently ingame!\nStart by using /start")
             } else if (!leaveConfirm.contains(sender.uniqueId)) {
                 leaveConfirm.add(sender.uniqueId)
-                sendInfo(ChatColor.translateAlternateColorCodes('&',
-                        "&cYou are about to leave the game!!!\n" +
-                                "&lYour progress will be lost&r&c, but any xp and money you earned will stay with you.\n" +
-                                "Type /leave again to leave"))
+                sender.info("&cYou are about to leave the game!!!\n" +
+                        "&lYour progress will be lost&r&c, but any xp and money you earned will stay with you.\n" +
+                        "Type /stopdescent again to leave")
             } else {
                 leaveConfirm.remove(sender.uniqueId)
                 sender.health = 0.0
             }
             return true
-        } else if (Permissions.CREATE_GONDOLA_SPAWN.permitted("creategondolaspawn")) {
+        } else if (Permissions.CREATE_GONDOLA_SPAWN.permitted(CommandLabels.CREATE_GONDOLA_SPAWN)) {
             val spawnLocConfig = context.configManager.startLocationCM
             val spawns = spawnLocConfig.getMapList(GondolaGUI.SPAWN_KEY)
             var displayItem = sender.inventory.itemInMainHand.clone()
@@ -90,23 +84,12 @@ class GUICommandExecutor(private val context: AbyssContext) : CommandExecutor {
 
             spawns.add(map)
             spawnLocConfig.set(GondolaGUI.SPAWN_KEY, spawns)
+            spawnLocConfig.saveConfig()
 
-            sender.sendMessage("Created spawn")
+            sender.success("Created spawn")
             return true
         }
 
         return false
-    }
-
-    companion object {
-        fun leave(playerData: PlayerData) {
-            playerData.isIngame = false
-            val player = playerData.player
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&l    Game Stats:\n" +
-                            "Exp earned:      ${(playerData.exp - playerData.expOnDescent)}\n" +
-                            "Started dive on: ${playerData.descentDate}"))
-            //        player.sendTitle("", String.format("%s%sLet the journey begin", ChatColor.GRAY, ChatColor.ITALIC), 30, 30, 20);
-        }
     }
 }

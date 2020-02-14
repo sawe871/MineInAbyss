@@ -1,7 +1,10 @@
 package com.derongan.minecraft.mineinabyss.gui;
 
 import com.derongan.minecraft.deeperworld.world.section.Section;
-import com.derongan.minecraft.guiy.gui.*;
+import com.derongan.minecraft.guiy.gui.Cell;
+import com.derongan.minecraft.guiy.gui.ClickableElement;
+import com.derongan.minecraft.guiy.gui.Element;
+import com.derongan.minecraft.guiy.gui.Layout;
 import com.derongan.minecraft.guiy.gui.layouts.HistoryGuiHolder;
 import com.derongan.minecraft.mineinabyss.AbyssContext;
 import com.derongan.minecraft.mineinabyss.MineInAbyss;
@@ -26,18 +29,18 @@ public class StatsGUI extends HistoryGuiHolder {
     private PlayerData playerData;
     private static ChatColor mainColor = ConfigConstants.mainColor;
     private static ChatColor secondaryColor = ConfigConstants.secondaryColor;
+    private Player player;
 
     public StatsGUI(Player player, MineInAbyss plugin) {
         super(6, "Mine In Abyss - Stats", plugin);
+        this.player = player;
         context = MineInAbyss.getContext();
         playerData = context.getPlayerData(player);
-        this.player = player;
 
         setElement(buildMain());
     }
 
     public static ItemStack getHead(Player player) {
-        int lifePlayer = (int) player.getHealth();
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta skull = (SkullMeta) item.getItemMeta();
         skull.setDisplayName(ChatColor.RESET + player.getName());
@@ -79,7 +82,7 @@ public class StatsGUI extends HistoryGuiHolder {
         layout.addElement(7, 0, level);
 
         //The player's balance
-        Element balance = Cell.forItemStack(new ItemStack(Material.GOLD_BLOCK), mainColor + "Balance: $" + ChatColor.GOLD + MineInAbyss.getEcon().getBalance(player));
+        Element balance = Cell.forItemStack(new ItemStack(Material.GOLD_BLOCK), mainColor + "Balance: " + ChatColor.GOLD + "$" + MineInAbyss.getEcon().getBalance(player));
         layout.addElement(8, 0, balance);
 
         addBackButton(layout);
