@@ -1,2 +1,19 @@
-include ':DeeperWorld'
-project(':DeeperWorld').projectDir = new File('../DeeperWorld')
+if(useLocalGuiy.toBoolean()) {
+    include ':guiy'
+    project(':guiy').projectDir = new File('../guiy')
+}
+
+if(useLocalIdofront.toBoolean()) {
+    include 'idofront'
+    project(':idofront').projectDir = new File('../idofront')
+}
+
+if(useLocalGeary.toBoolean()) {
+    include 'geary'
+    project(':geary').projectDir = new File('../geary')
+}
+
+if(useLocalDeeperWorld.toBoolean()) {
+    include 'DeeperWorld'
+    project(':DeeperWorld').projectDir = new File('../DeeperWorld')
+}

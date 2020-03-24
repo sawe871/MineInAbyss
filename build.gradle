@@ -1,13 +1,22 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '5.0.0'
     id 'java'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
+    id 'maven-publish'
 }
 
-group 'com.derongan.minecraft'
-version plugin_version + "-SNAPSHOT"
+group = 'com.derongan.minecraft'
+version = plugin_version
+
+if (project.hasProperty("buildNo")) {
+    version += "." + buildNo
+}
+
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -22,14 +31,78 @@ repositories {
     maven { url 'https://erethon.de/repo/' } //HeadLib
     mavenLocal()
     jcenter()
+    maven {
+        name = "GitHubPackages-DeeperWorld"
+        url = uri("https://maven.pkg.github.com/MineInAbyss/DeeperWorld")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+    maven {
+        name = "GitHubPackages-guiy"
+        url = uri("https://maven.pkg.github.com/MineInAbyss/guiy")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+    maven {
+        name = "GitHubPackages-idofront"
+        url = uri("https://maven.pkg.github.com/MineInAbyss/Idofront")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+    maven {
+        name = "GitHubPackages-geary"
+        url = uri("https://maven.pkg.github.com/MineInAbyss/geary")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
     maven { url 'https://jitpack.io' } //JitPack
 }
 
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/MineInAbyss/MineInAbyss")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
-    implementation project(':DeeperWorld')
-    compile 'de.erethon:headlib:3.0.1'
-    implementation 'com.github.Mineinabyss:guiy:master-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.15-R0.1-SNAPSHOT'
+    implementation 'de.erethon:headlib:3.0.2'
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+    compileOnly group: 'com.badlogicgames.ashley', name: 'ashley', version: '1.7.3'
+
+    if (useLocalGeary.toBoolean()) implementation project(':geary')
+    else implementation group: 'com.mineinabyss', name: 'geary', version: '0.1.+'
+
+    if (useLocalGuiy.toBoolean()) implementation project(':guiy')
+    else implementation group: 'com.derongan.minecraft', name: 'guiy', version: '0.1.+'
+
+    if (useLocalIdofront.toBoolean()) implementation project(':idofront')
+    else implementation group: 'com.mineinabyss', name: 'idofront', version: '0.1.+'
+
+    if (useLocalDeeperWorld.toBoolean()) implementation project(':DeeperWorld')
+    else implementation group: 'com.derongan.minecraft', name: 'deeperworld', version: '0.1.+'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
 processResources {
@@ -38,18 +111,26 @@ processResources {
     }
 }
 
-
 shadowJar {
-    classifier = null
-    dependencies {
-        include(dependency('com.github.Mineinabyss:guiy:master-SNAPSHOT'))
-        include(dependency('de.erethon:headlib:3.0.1'))
+    getArchiveClassifier().set(null)
+    relocate 'com.derongan.minecraft.guiy', "com.derongan.minecraft.guiy.${project.group}.${project.name}"
+    relocate 'com.mineinabyss.idofront', "com.mineinabyss.idofront.${project.group}.${project.name}"
+    minimize {
+        exclude(dependency("org.jetbrains.kotlin:.*"))
+        exclude(dependency('de.erethon:headlib:3.0.2'))
     }
 }
+build.dependsOn shadowJar
 
-task copyJar(type: Copy) {
-    from shadowJar // here it automatically reads jar file produced from jar task
-    into '/srv/craftbukkit/plugins/'
+compileKotlin { kotlinOptions { jvmTarget = "1.8" } }
+compileTestKotlin { kotlinOptions { jvmTarget = "1.8" } }
+
+//Move into plugins folder
+if (project.hasProperty("plugin_path") && plugin_path) {
+    println("Copying to plugin directory $plugin_path")
+    task copyJar(type: Copy) {
+        from shadowJar // here it automatically reads jar file produced from jar task
+        into plugin_path
+    }
+    build.dependsOn copyJar
 }
-
-build.dependsOn copyJar
